@@ -1,0 +1,268 @@
+import { z } from "zod";
+
+import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
+import { paginationSchema } from "@/server/schema";
+
+import bcrypt from "bcrypt";
+import { db } from "@/server/db";
+import { RoleName } from "@prisma/client";
+
+const saltRounds = 10; // Nombre de tours de sel, ajustez selon les besoins
+
+async function generateUniqueUsername(
+  firstname: string,
+  lastname: string,
+): Promise<string> {
+  let tempUsername = `${firstname[0]}.${lastname}`.toLowerCase();
+  let isExisting = await db.user.findUnique({
+    where: { username: tempUsername },
+  });
+
+  let iterator = 1;
+
+  // Tant qu'un utilisateur existe avec ce nom d'utilisateur, ajoutez un nombre aléatoire et vérifiez à nouveau
+  while (isExisting) {
+    tempUsername = `${tempUsername}${iterator}`;
+    isExisting = await db.user.findUnique({
+      where: { username: tempUsername },
+    });
+
+    iterator += 1;
+  }
+
+  return tempUsername;
+}
+
+const extendedPaginationSchema = paginationSchema.extend({
+  search: z.string().optional(),
+  role: z.nativeEnum(RoleName).optional(),
+});
+
+export const userRouter = createTRPCRouter({
+  create: protectedProcedure
+    .input(
+      z.object({
+        firstname: z.string().min(1),
+        lastname: z.string().min(1),
+        email: z.string().email().optional(),
+        password: z.string().min(8),
+        passwordConfirm: z.string().min(8),
+        roleId: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      // check if the user is an admin
+      if (ctx.session.user.role.name !== RoleName.ADMIN) {
+        throw new Error(
+          "Vous n'avez pas l'autorisation d'ajouter un utilisateur",
+        );
+      }
+
+      // check if the password and passwordConfirm match
+      if (input.password !== input.passwordConfirm) {
+        throw new Error("Les mots de passe ne correspondent pas");
+      }
+
+      const username = await generateUniqueUsername(
+        input.firstname,
+        input.lastname,
+      );
+      const hashedPassword = await bcrypt.hash(input.password, saltRounds);
+
+      return ctx.db.user.create({
+        data: {
+          firstname: input.firstname,
+          lastname: input.lastname,
+          username,
+          email: input.email,
+          password: hashedPassword,
+          role: { connect: { id: input.roleId } },
+        },
+      });
+    }),
+
+  findOne: protectedProcedure
+    .input(z.object({ userId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      if (ctx.session.user.role.name !== RoleName.ADMIN) {
+        throw new Error(
+          "Vous n'avez pas l'autorisation de voir cet utilisateur",
+        );
+      }
+
+      return await ctx.db.user.findUnique({
+        select: {
+          id: true,
+          firstname: true,
+          lastname: true,
+          email: true,
+          role: { select: { id: true, name: true } },
+        },
+        where: { id: input.userId },
+      });
+    }),
+
+  findAll: protectedProcedure
+    .input(extendedPaginationSchema)
+    .query(async ({ ctx, input }) => {
+      if (ctx.session.user.role.name !== RoleName.ADMIN) {
+        throw new Error(
+          "Vous n'avez pas l'autorisation d'ajouter un utilisateur",
+        );
+      }
+
+      let whereClause = {};
+
+      if (input.search) {
+        whereClause = {
+          OR: [
+            { firstname: { contains: input.search, mode: "insensitive" } },
+            { lastname: { contains: input.search, mode: "insensitive" } },
+          ],
+        };
+      }
+
+      if (input.role) {
+        whereClause = {
+          ...whereClause,
+          role: { name: input.role },
+        };
+      }
+
+      const users = await ctx.db.user.findMany({
+        where: { ...whereClause },
+        select: {
+          id: true,
+          firstname: true,
+          lastname: true,
+          email: true,
+          role: { select: { id: true, name: true } },
+        },
+        orderBy: { lastname: "asc" },
+        skip: input.skip,
+        take: input.take,
+      });
+
+      const total = await ctx.db.user.count();
+
+      return { users, total };
+    }),
+
+  edit: protectedProcedure
+    .input(
+      z.object({
+        userId: z.string(),
+        firstname: z.string().min(1),
+        lastname: z.string().min(1),
+        email: z.string().email().optional(),
+        roleId: z.string(),
+        password: z.string().min(8).optional(),
+        passwordConfirm: z.string().min(8).optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const requestingUser = await ctx.db.user.findUnique({
+        where: { id: ctx.session.user.id },
+        include: { role: true },
+      });
+
+      if (!requestingUser) {
+        throw new Error("Utilisateur non trouvé");
+      }
+
+      const canEditPassword =
+        requestingUser.id === input.userId ||
+        ctx.session.user.role.name === RoleName.ADMIN;
+
+      if (!canEditPassword) {
+        throw new Error(
+          "Vous n'avez pas l'autorisation de modifier ce mot de passe.",
+        );
+      }
+
+      const username = await generateUniqueUsername(
+        input.firstname,
+        input.lastname,
+      );
+
+      if (input.password && input.passwordConfirm) {
+        if (input.password !== input.passwordConfirm) {
+          throw new Error("Les mots de passe ne correspondent pas");
+        }
+
+        const hashedPassword = await bcrypt.hash(input.password, saltRounds);
+
+        return ctx.db.user.update({
+          where: { id: input.userId },
+          data: {
+            firstname: input.firstname,
+            lastname: input.lastname,
+            username,
+            email: input.email,
+            role: { connect: { id: input.roleId } },
+            password: hashedPassword,
+          },
+        });
+      }
+
+      return ctx.db.user.update({
+        where: { id: input.userId },
+        data: {
+          firstname: input.firstname,
+          lastname: input.lastname,
+          username,
+          email: input.email,
+          role: { connect: { id: input.roleId } },
+        },
+      });
+    }),
+
+  changePassword: protectedProcedure
+    .input(
+      z.object({
+        userId: z.string(),
+        password: z.string().min(8),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const requestingUser = await ctx.db.user.findUnique({
+        where: { id: ctx.session.user.id },
+        include: { role: true },
+      });
+
+      if (!requestingUser) {
+        throw new Error("Utilisateur non trouvé");
+      }
+
+      const canEditPassword =
+        requestingUser.id === input.userId ||
+        ctx.session.user.role.name === RoleName.ADMIN;
+
+      if (!canEditPassword) {
+        throw new Error(
+          "Vous n'avez pas l'autorisation de modifier ce mot de passe.",
+        );
+      }
+
+      const hashedPassword = await bcrypt.hash(input.password, saltRounds);
+
+      return ctx.db.user.update({
+        where: { id: ctx.session.user.id },
+        data: {
+          password: hashedPassword,
+        },
+      });
+    }),
+
+  delete: protectedProcedure
+    .input(z.object({ userId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      if (ctx.session.user.role.name !== RoleName.ADMIN) {
+        throw new Error(
+          "Vous n'avez pas l'autorisation de supprimer un utilisateur",
+        );
+      }
+
+      return ctx.db.user.delete({ where: { id: input.userId } });
+    }),
+});
