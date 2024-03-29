@@ -9,7 +9,7 @@ export default function MainLayout({
     <div className="flex min-h-screen bg-gray-50">
       <SideMenu />
       <div className="flex-grow">
-        <main className="mx-auto my-0 py-16">{children}</main>
+        <main className="mx-auto my-0 py-10">{children}</main>
       </div>
     </div>
   );

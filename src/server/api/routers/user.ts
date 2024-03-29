@@ -163,7 +163,7 @@ export const userRouter = createTRPCRouter({
 
       const total = await ctx.db.user.count();
 
-      return { users, total };
+      return { data: users, total };
     }),
 
   edit: protectedProcedure

@@ -46,8 +46,6 @@ export default function UserEditPage({ params }: { params: { id: string } }) {
     },
   });
 
-  console.log(params.id);
-
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const { setTitle, setMessage, openPopup } = usePopup();
@@ -79,6 +77,23 @@ export default function UserEditPage({ params }: { params: { id: string } }) {
         ? (formData.get("passwordConfirm") as string)
         : undefined,
     });
+  }
+
+  if (!isPending && !user) {
+    return (
+      <div className="mx-auto flex min-h-screen max-w-screen-xl flex-col px-4 pb-16 pt-8">
+        <div className="flex-grow">
+          <main className="my-0">
+            <h1 className="text-center text-xl text-red-600 sm:text-4xl">
+              Oups ...
+            </h1>
+            <p className="mt-4 text-center text-lg text-gray-600">
+              L&apos;utilisateur n&apos;existe pas
+            </p>
+          </main>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -184,9 +199,6 @@ export default function UserEditPage({ params }: { params: { id: string } }) {
 
                   <div className="grid grid-cols-1 gap-8 text-center sm:grid-cols-3">
                     {roles?.map((role) => {
-                      console.log(role);
-                      console.log(user?.role.id);
-
                       return (
                         <label
                           key={role.id}

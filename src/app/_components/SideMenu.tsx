@@ -252,6 +252,12 @@ export default function SideMenu() {
                     >
                       Utilisateurs
                     </Link>
+                    <Link
+                      href="/dashboard/secteurs"
+                      className="block rounded-lg px-4 py-2 text-sm font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+                    >
+                      Secteurs
+                    </Link>
                   </li>
                 </ul>
               </details>

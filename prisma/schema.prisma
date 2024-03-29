@@ -15,10 +15,19 @@ datasource db {
     url      = env("DATABASE_URL")
 }
 
+model Departement {
+    id        String   @id @default(cuid())
+    name      String
+    code      String
+    secteur   Secteur? @relation(fields: [secteurId], references: [id])
+    secteurId String?
+}
+
 model Secteur {
     id          String        @id @default(cuid())
     name        String
-    SecteurUser SecteurUser[]
+    secteurUser SecteurUser[]
+    departement Departement[]
 }
 
 model SecteurUser {
@@ -65,7 +74,7 @@ enum RoleName {
 model Role {
     id   String   @id @default(cuid())
     name RoleName
-    User User[]
+    user User[]
 }
 
 model User {
