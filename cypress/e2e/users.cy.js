@@ -64,13 +64,35 @@ describe("Users", () => {
 
     cy.url().should("include", "/dashboard/users/edit");
 
-    cy.get('input[name="firstname"]').clear().type("user2");
+    cy.get('input[name="firstname"]').clear().type("user-edited");
 
     cy.contains("button", "Sauvegarder l'utilisateur").click();
 
     cy.url().should("include", "/dashboard/users");
 
     cy.contains("Utilisateur modifié").should("be.visible");
+  });
+
+  it("should edit a user password", () => {
+    cy.visit("http://localhost:3000/login");
+    cy.get('input[name="username"]').type("u.user");
+    cy.get('input[name="password"]').type("user1234");
+    cy.get("button").click();
+
+    cy.url().should("include", "/dashboard");
+
+    cy.visit("http://localhost:3000/dashboard/account");
+
+    cy.url().should("include", "/dashboard/account");
+
+    cy.get('button[id="edit-password"]').click();
+
+    cy.get('input[name="password"]').type("user12345");
+    cy.get('input[name="passwordConfirm"]').type("user12345");
+
+    cy.contains("button", "Valider").click();
+
+    cy.contains("Mot de passe modifié").should("be.visible");
   });
 
   it("should delete a user", () => {

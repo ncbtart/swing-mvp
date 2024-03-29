@@ -6,7 +6,7 @@ import ButtonGroup from "@/app/_components/core/ButtonGroup";
 import SearchInput from "@/app/_components/core/SearchInput";
 import { api } from "@/trpc/react";
 
-import { debounce, set } from "lodash";
+import { debounce } from "lodash";
 
 import GenericTable from "@/app/_components/core/GenericTable";
 import Link from "next/link";
@@ -49,7 +49,7 @@ export default function Utilisateurs() {
 
   const {
     data: users,
-    isLoading,
+    isPending,
     refetch,
   } = api.user.findAll.useQuery({
     skip: 0,
@@ -117,7 +117,7 @@ export default function Utilisateurs() {
             />
           </div>
 
-          {isLoading ? (
+          {isPending ? (
             // loading animation
             <div className="flex h-96 items-center justify-center">
               <svg

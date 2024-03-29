@@ -22,7 +22,7 @@ export default function UserEditPage({ params }: { params: { id: string } }) {
 
   const {
     data: user,
-    isLoading,
+    isPending,
     refetch,
   } = api.user.findOne.useQuery(
     {
@@ -98,7 +98,7 @@ export default function UserEditPage({ params }: { params: { id: string } }) {
               Retour à la liste des utilisateurs
             </Link>
 
-            {isLoading ? (
+            {isPending ? (
               <div className="flex h-96 items-center justify-center">
                 <svg
                   aria-hidden="true"

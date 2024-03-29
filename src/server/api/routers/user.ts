@@ -45,8 +45,12 @@ export const userRouter = createTRPCRouter({
         firstname: z.string().min(1),
         lastname: z.string().min(1),
         email: z.string().email().optional(),
-        password: z.string().min(8),
-        passwordConfirm: z.string().min(8),
+        password: z.string().min(8, {
+          message: "Le mot de passe doit contenir au moins 8 caractères",
+        }),
+        passwordConfirm: z.string().min(8, {
+          message: "Le mot de passe doit contenir au moins 8 caractères",
+        }),
         roleId: z.string(),
       }),
     )
@@ -102,6 +106,19 @@ export const userRouter = createTRPCRouter({
       });
     }),
 
+  findMe: protectedProcedure.query(async ({ ctx }) => {
+    return await ctx.db.user.findUnique({
+      select: {
+        id: true,
+        firstname: true,
+        lastname: true,
+        email: true,
+        role: { select: { id: true, name: true } },
+      },
+      where: { id: ctx.session.user.id },
+    });
+  }),
+
   findAll: protectedProcedure
     .input(extendedPaginationSchema)
     .query(async ({ ctx, input }) => {
@@ -118,6 +135,7 @@ export const userRouter = createTRPCRouter({
           OR: [
             { firstname: { contains: input.search, mode: "insensitive" } },
             { lastname: { contains: input.search, mode: "insensitive" } },
+            { email: { contains: input.search, mode: "insensitive" } },
           ],
         };
       }
@@ -156,8 +174,18 @@ export const userRouter = createTRPCRouter({
         lastname: z.string().min(1),
         email: z.string().email().optional(),
         roleId: z.string(),
-        password: z.string().min(8).optional(),
-        passwordConfirm: z.string().min(8).optional(),
+        password: z
+          .string()
+          .min(8, {
+            message: "Le mot de passe doit contenir au moins 8 caractères",
+          })
+          .optional(),
+        passwordConfirm: z
+          .string()
+          .min(8, {
+            message: "Le mot de passe doit contenir au moins 8 caractères",
+          })
+          .optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -179,11 +207,6 @@ export const userRouter = createTRPCRouter({
           "Vous n'avez pas l'autorisation de modifier ce mot de passe.",
         );
       }
-
-      const username = await generateUniqueUsername(
-        input.firstname,
-        input.lastname,
-      );
 
       if (input.password && input.passwordConfirm) {
         if (input.password !== input.passwordConfirm) {
@@ -197,7 +220,6 @@ export const userRouter = createTRPCRouter({
           data: {
             firstname: input.firstname,
             lastname: input.lastname,
-            username,
             email: input.email,
             role: { connect: { id: input.roleId } },
             password: hashedPassword,
@@ -210,7 +232,6 @@ export const userRouter = createTRPCRouter({
         data: {
           firstname: input.firstname,
           lastname: input.lastname,
-          username,
           email: input.email,
           role: { connect: { id: input.roleId } },
         },
@@ -220,8 +241,12 @@ export const userRouter = createTRPCRouter({
   changePassword: protectedProcedure
     .input(
       z.object({
-        userId: z.string(),
-        password: z.string().min(8),
+        password: z.string().min(8, {
+          message: "Le mot de passe doit contenir au moins 8 caractères",
+        }),
+        passwordConfirm: z.string().min(8, {
+          message: "Le mot de passe doit contenir au moins 8 caractères",
+        }),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -232,16 +257,6 @@ export const userRouter = createTRPCRouter({
 
       if (!requestingUser) {
         throw new Error("Utilisateur non trouvé");
-      }
-
-      const canEditPassword =
-        requestingUser.id === input.userId ||
-        ctx.session.user.role.name === RoleName.ADMIN;
-
-      if (!canEditPassword) {
-        throw new Error(
-          "Vous n'avez pas l'autorisation de modifier ce mot de passe.",
-        );
       }
 
       const hashedPassword = await bcrypt.hash(input.password, saltRounds);
