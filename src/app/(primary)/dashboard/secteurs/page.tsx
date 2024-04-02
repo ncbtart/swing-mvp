@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import SearchInput from "@/app/_components/core/SearchInput";
 import { api } from "@/trpc/react";
 
-import { debounce } from "lodash";
+import { debounce, set } from "lodash";
 
 import GenericTable from "@/app/_components/core/GenericTable";
 import Link from "next/link";
@@ -23,7 +23,11 @@ export default function Secteurs() {
     name: string;
   } | null>(null);
 
-  const { data: secteurs, isPending } = api.secteur.findAll.useQuery({
+  const {
+    data: secteurs,
+    isPending,
+    refetch,
+  } = api.secteur.findAll.useQuery({
     search: debouncedSearch,
     skip,
     take: 10,
@@ -45,8 +49,25 @@ export default function Secteurs() {
 
   const { setTitle, setMessage, openPopup } = usePopup();
 
+  const deleteMutation = api.secteur.delete.useMutation({
+    onSuccess: async () => {
+      setDeleteSecteur(null);
+      await refetch();
+      setTitle("Secteur supprimé");
+      setMessage("Le secteur a été supprimé avec succès");
+      openPopup();
+    },
+    onError: () => {
+      setTitle("Erreur");
+      setMessage("Une erreur s'est produite lors de la suppression du secteur");
+      openPopup();
+    },
+  });
+
   const handleDeleteSecteur = () => {
     if (!deleteSecteur) return;
+
+    deleteMutation.mutate({ secteurId: deleteSecteur.id });
   };
 
   return (
@@ -57,7 +78,7 @@ export default function Secteurs() {
 
           <div className="mt-4 flex items-center justify-between">
             <Link
-              href="/dashboard/users/create"
+              href="/dashboard/secteurs/create"
               className="mt-4 inline-block text-blue-600"
             >
               Ajouter un secteur

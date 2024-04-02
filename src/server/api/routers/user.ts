@@ -166,6 +166,26 @@ export const userRouter = createTRPCRouter({
       return { data: users, total };
     }),
 
+  findAllCommerciaux: protectedProcedure.query(async ({ ctx }) => {
+    const commerciaux = await ctx.db.user.findMany({
+      where: {
+        OR: [
+          { role: { name: RoleName.COMMERCIAL } },
+          { role: { name: RoleName.CHEF } },
+        ],
+      },
+      select: {
+        id: true,
+        firstname: true,
+        lastname: true,
+        role: { select: { name: true } },
+      },
+      orderBy: { lastname: "asc" },
+    });
+
+    return commerciaux;
+  }),
+
   edit: protectedProcedure
     .input(
       z.object({

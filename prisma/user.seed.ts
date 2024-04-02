@@ -37,6 +37,16 @@ async function seedUsers(
     },
   });
 
+  await client.user.create({
+    data: {
+      firstname: "Alice",
+      lastname: "Doe",
+      username: "a.doe",
+      password: await bcrypt.hash("alice1234", 10),
+      roleId: chefRole.id,
+    },
+  });
+
   // Créer plus d'utilisateurs si nécessaire...
 
   console.log("Users seeded");

@@ -6,12 +6,14 @@ import { api } from "@/trpc/react";
 import { useEffect, useRef, useState } from "react";
 import { type RoleName, type Departement } from "@prisma/client";
 import { RoleNameLabels } from "@/utils/constantes";
+import { useRouter } from "next/navigation";
+import { usePopup } from "@/app/_hooks/usePopUp";
 
 interface Commerciaux {
   user: {
     id: string;
-    firstname: string;
-    lastname: string;
+    firstname: string | null;
+    lastname: string | null;
     role: {
       name: RoleName;
     };
@@ -27,16 +29,40 @@ export default function SecteurEditPage({
     secteurId: params.id,
   });
 
+  const router = useRouter();
+
   const { data: allDepartements, isPending: deptPending } =
     api.departement.findAll.useQuery();
 
+  const { data: allUsers, isPending: userPending } =
+    api.user.findAllCommerciaux.useQuery();
+
   const depRef = useRef<HTMLInputElement>(null);
+
+  const comRef = useRef<HTMLInputElement>(null);
+
+  const { setTitle, setMessage, openPopup } = usePopup();
 
   const [departements, setDepartements] = useState<
     Omit<Departement, "secteurId">[]
   >([]);
 
   const [commerciaux, setCommerciaux] = useState<Commerciaux[]>([]);
+
+  const editMutation = api.secteur.edit.useMutation({
+    onSuccess: () => {
+      // redirect to secteurs page
+      router.push("/dashboard/secteurs");
+      setMessage("Le secteur a été modifié avec succès");
+      setTitle("Succès");
+      openPopup();
+    },
+    onError: (error) => {
+      setMessage(error.message);
+      setTitle("Erreur");
+      openPopup();
+    },
+  });
 
   useEffect(() => {
     if (secteur) {
@@ -70,6 +96,44 @@ export default function SecteurEditPage({
         return sorted;
       });
     }
+
+    depRef.current.value = "";
+  };
+
+  const handleAddCommercial = (e: React.MouseEvent) => {
+    e.preventDefault();
+
+    const comName = comRef.current?.value;
+
+    if (!comName) return;
+
+    const com = allUsers?.find(
+      (c) => `${c.firstname} ${c.lastname}` === comName,
+    );
+
+    if (com) {
+      setCommerciaux((prev) => {
+        // check if com already exists
+
+        if (prev.find((c) => c.user.id === com.id)) {
+          return prev;
+        }
+
+        // sort by lastname before adding
+        const sorted = [
+          ...prev,
+          {
+            user: com,
+          },
+        ].sort((a, b) =>
+          (a.user?.lastname ?? "").localeCompare(b.user?.lastname ?? ""),
+        );
+
+        return sorted;
+      });
+    }
+
+    comRef.current.value = "";
   };
 
   const handleDeleteDept = (deptId: string) => {
@@ -78,6 +142,32 @@ export default function SecteurEditPage({
 
   const handleDeleteCommercial = (userId: string) => {
     setCommerciaux((prev) => prev.filter((c) => c.user.id !== userId));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const formData = new FormData(e.target as HTMLFormElement);
+
+    const body = {
+      name: formData.get("name"),
+    };
+
+    const secteurData = {
+      id: secteur?.id,
+      name: body.name,
+      departementIds: departements.map((d) => d.id),
+      userIds: commerciaux.map((c) => c.user.id),
+    };
+
+    if (!secteurData.id) return;
+
+    editMutation.mutate({
+      secteurId: secteurData.id,
+      name: secteurData.name as string,
+      departementIds: secteurData.departementIds,
+      commerciauxIds: secteurData.userIds,
+    });
   };
 
   if (!isPending && !secteur) {
@@ -136,7 +226,7 @@ export default function SecteurEditPage({
               </div>
             ) : (
               <div className="mt-6 rounded-lg bg-white p-8 shadow-lg lg:col-span-3 lg:p-12">
-                <form className="space-y-4">
+                <form className="space-y-4" onSubmit={handleSubmit}>
                   <div className="grid grid-cols-1 gap-8 sm:grid-cols-2">
                     <label htmlFor="lastname" className="sr-only">
                       Nom
@@ -147,7 +237,7 @@ export default function SecteurEditPage({
                         type="text"
                         className="w-full rounded-lg border-gray-200 p-4 pe-12 text-sm shadow-sm"
                         placeholder="Nom"
-                        name="lastname"
+                        name="name"
                         defaultValue={secteur?.name ?? ""}
                         required
                       />
@@ -274,9 +364,9 @@ export default function SecteurEditPage({
                             <input
                               type="text"
                               list="comList"
-                              id="comList"
+                              ref={comRef}
                               className="shadow-smsm:text-sm w-full rounded-lg border border-gray-200 p-4 pe-12 text-sm [&::-webkit-calendar-picker-indicator]:opacity-0"
-                              placeholder="Please select"
+                              placeholder="Selectionnez un commercial"
                             />
 
                             <span className="absolute inset-y-0 end-0 flex w-8 items-center">
@@ -298,13 +388,14 @@ export default function SecteurEditPage({
                           </div>
 
                           <datalist id="comList">
-                            {deptPending ? (
+                            {userPending ? (
                               <option>Loading...</option>
                             ) : (
-                              allDepartements?.map((dept) => (
-                                <option key={dept.id} value={dept.code}>
-                                  {dept.name}
-                                </option>
+                              allUsers?.map((com) => (
+                                <option
+                                  key={com.id}
+                                  value={`${com.firstname} ${com.lastname}`}
+                                ></option>
                               ))
                             )}
                           </datalist>
@@ -312,7 +403,7 @@ export default function SecteurEditPage({
 
                         <div className="flex items-center justify-center">
                           <button
-                            onClick={handleAddDept}
+                            onClick={handleAddCommercial}
                             className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
                           >
                             <span className="text-sm">Ajouter</span>

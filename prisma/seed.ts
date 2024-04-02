@@ -8,6 +8,8 @@ import { use } from "chai";
 const prisma = new PrismaClient();
 
 async function main() {
+  await prisma.secteurUser.deleteMany();
+
   await prisma.secteur.deleteMany();
 
   await prisma.departement.deleteMany();
