@@ -1,0 +1,888 @@
+[
+  {
+    "name": "SMH2 (KH)",
+    "surgery": ["HIL"],
+    "fabricant": "SWING",
+    "models": [
+      {
+        "name": "SMH2 5595 L"
+      },
+      {
+        "name": "SMH2 6513 L"
+      }
+    ]
+  },
+  {
+    "name": "SMH2 (MA)",
+    "surgery": ["HIC"],
+    "fabricant": "SWING",
+    "models": [
+      {
+        "name": "SMH2 0913 MA"
+      },
+      {
+        "name": "SMH2 1114 MA"
+      },
+      {
+        "name": "SMH2 1215 MA"
+      },
+      {
+        "name": "SMH2 1216 MA"
+      }
+    ]
+  },
+  {
+    "name": "SMH2 (MB)",
+    "surgery": ["HIC"],
+    "fabricant": "SWING",
+    "models": [
+      {
+        "name": "SMH2 1013 MB"
+      },
+      {
+        "name": "SMH2 1115 MB"
+      },
+      {
+        "name": "SMH2 1216 MB"
+      }
+    ]
+  },
+  {
+    "name": "SMH2 (S)",
+    "surgery": ["HIC", "ERM"],
+    "fabricant": "SWING",
+    "models": [
+      {
+        "name": "SMH2 0611 S"
+      },
+      {
+        "name": "SMH2 1015 S"
+      },
+      {
+        "name": "SMH2 1515 S"
+      },
+      {
+        "name": "SMH2 3030 S"
+      }
+    ]
+  },
+  {
+    "name": "SMX (KH)",
+    "surgery": ["HIL"],
+    "fabricant": "SWING",
+    "models": [
+      {
+        "name": "SMX 5595 L"
+      },
+      {
+        "name": "SMX 6513 L"
+      }
+    ]
+  },
+  {
+    "name": "SMX (S)",
+    "surgery": ["HIL", "ERM"],
+    "fabricant": "SWING",
+    "models": [
+      {
+        "name": "SMX 0611 S"
+      },
+      {
+        "name": "SMX 1015 S"
+      },
+      {
+        "name": "SMX 1515 S"
+      },
+      {
+        "name": "SMX 3030 S"
+      }
+    ]
+  },
+  {
+    "name": "SM2+ (MA)",
+    "surgery": ["HIC"],
+    "fabricant": "SWING",
+    "models": [
+      {
+        "name": "SM2+ 0913 MA"
+      },
+      {
+        "name": "SM2+ 1114 MA"
+      },
+      {
+        "name": "SM2+ 1215 MA"
+      },
+      {
+        "name": "SM2+ 1216 MA"
+      }
+    ]
+  },
+  {
+    "name": "SM2+ (BM)",
+    "surgery": ["HIC"],
+    "fabricant": "SWING",
+    "models": [
+      {
+        "name": "SM2+ 0913 BM"
+      },
+      {
+        "name": "SM2+ 1114 BM"
+      },
+      {
+        "name": "SM2+ 1215 BM"
+      }
+    ]
+  },
+  {
+    "name": "SMA",
+    "surgery": ["HIC"],
+    "fabricant": "SWING",
+    "models": [
+      {
+        "name": "SMA 0913 D"
+      },
+      {
+        "name": "SMA 0913 G"
+      },
+      {
+        "name": "SMA 1115 D"
+      },
+      {
+        "name": "SMA 1115 G"
+      },
+      {
+        "name": "SMA 1216 D"
+      },
+      {
+        "name": "SMA 1216 G"
+      }
+    ]
+  },
+  {
+    "name": "SM2+ (S)",
+    "surgery": ["HIC"],
+    "fabricant": "SWING",
+    "models": [
+      {
+        "name": "SM2+ 1515 S"
+      },
+      {
+        "name": "SM2+ 1520 S"
+      }
+    ]
+  },
+  {
+    "name": "SM3 (KH)",
+    "surgery": ["HIL"],
+    "fabricant": "SWING",
+    "models": [
+      {
+        "name": "SM3 5595 L"
+      },
+      {
+        "name": "SM3 6513 L"
+      }
+    ]
+  },
+  {
+    "name": "SM3 (RABAT)",
+    "surgery": ["HIL"],
+    "fabricant": "SWING",
+    "models": [
+      {
+        "name": "SM3 0813 L"
+      }
+    ]
+  },
+  {
+    "name": "SM3 (A)",
+    "surgery": ["HIL"],
+    "fabricant": "SWING",
+    "models": [
+      {
+        "name": "SM3 0813 A"
+      }
+    ]
+  },
+  {
+    "name": "SM3 (F)",
+    "surgery": ["HIL"],
+    "fabricant": "SWING",
+    "models": [
+      {
+        "name": "SM3 0913 F"
+      }
+    ]
+  },
+  {
+    "name": "SM3 (S)",
+    "surgery": ["HIL", "ERM"],
+    "fabricant": "SWING",
+    "models": [
+      {
+        "name": "SM3 1515 S"
+      },
+      {
+        "name": "SM3 1520 S"
+      },
+      {
+        "name": "SM3 3030 S"
+      }
+    ]
+  },
+  {
+    "name": "SM3+ (KH)",
+    "surgery": ["HIL"],
+    "fabricant": "SWING",
+    "models": [
+      {
+        "name": "SM3+ 5595 L"
+      },
+      {
+        "name": "SM3+ 6513 L"
+      }
+    ]
+  },
+  {
+    "name": "SM3+ (RABAT)",
+    "surgery": ["HIL"],
+    "fabricant": "SWING",
+    "models": [
+      {
+        "name": "SM3+ 0812 L"
+      },
+      {
+        "name": "SM3+ 0813 L"
+      }
+    ]
+  },
+  {
+    "name": "SM3+ (A)",
+    "surgery": ["HIL"],
+    "fabricant": "SWING",
+    "models": [
+      {
+        "name": "SM3+ 0813 A"
+      }
+    ]
+  },
+  {
+    "name": "SM3+ (F)",
+    "surgery": ["HIL"],
+    "fabricant": "SWING",
+    "models": [
+      {
+        "name": "SM3+ 0913 F"
+      }
+    ]
+  },
+  {
+    "name": "SM3+ (MA)",
+    "surgery": ["HIC"],
+    "fabricant": "SWING",
+    "models": [
+      {
+        "name": "SM3+ 0913 MA"
+      },
+      {
+        "name": "SM3+ 1114 MA"
+      },
+      {
+        "name": "SM3+ 1215 MA"
+      },
+      {
+        "name": "SM3+ 1216 MA"
+      }
+    ]
+  },
+  {
+    "name": "SM3+ (MB)",
+    "surgery": ["HIC"],
+    "fabricant": "SWING",
+    "models": [
+      {
+        "name": "SM3+ 1013 MB"
+      },
+      {
+        "name": "SM3+ 1115 MB"
+      },
+      {
+        "name": "SM3+ 1216 MB"
+      }
+    ]
+  },
+  {
+    "name": "SM3+ (BM)",
+    "surgery": ["HIC"],
+    "fabricant": "SWING",
+    "models": [
+      {
+        "name": "SM3+ 0913 BM"
+      },
+      {
+        "name": "SM3+ 1114 BM"
+      },
+      {
+        "name": "SM3+ 1215 BM"
+      }
+    ]
+  },
+  {
+    "name": "SM3+ (S)",
+    "surgery": ["HIC", "ERM"],
+    "fabricant": "SWING",
+    "models": [
+      {
+        "name": "SM3+ 1515 S"
+      },
+      {
+        "name": "SM3+ 1520 S"
+      },
+      {
+        "name": "SM3+ 3030 S"
+      }
+    ]
+  },
+  {
+    "name": "CO3+ (RABAT)",
+    "surgery": ["HIL"],
+    "fabricant": "SWING",
+    "models": [
+      {
+        "name": "CO3+ 0812 L"
+      },
+      {
+        "name": "CO3+ 0813 L"
+      }
+    ]
+  },
+  {
+    "name": "CO3+ (A)",
+    "surgery": ["HIL"],
+    "fabricant": "SWING",
+    "models": [
+      {
+        "name": "CO3+ 0812 A"
+      },
+      {
+        "name": "CO3+ 0813 A"
+      }
+    ]
+  },
+  {
+    "name": "CO3+ (F)",
+    "surgery": ["HIL"],
+    "fabricant": "SWING",
+    "models": [
+      {
+        "name": "CO3+ 0913 F"
+      }
+    ]
+  },
+  {
+    "name": "CO3+ (MA)",
+    "surgery": ["HIC"],
+    "fabricant": "SWING",
+    "models": [
+      {
+        "name": "CO3+ 0913 MA"
+      },
+      {
+        "name": "CO3+ 1114 MA"
+      },
+      {
+        "name": "CO3+ 1215 MA"
+      },
+      {
+        "name": "CO3+ 1216 MA"
+      }
+    ]
+  },
+  {
+    "name": "CO3+ (MB)",
+    "surgery": ["HIC"],
+    "fabricant": "SWING",
+    "models": [
+      {
+        "name": "CO3+ 1013 MB"
+      },
+      {
+        "name": "CO3+ 1115 MB"
+      },
+      {
+        "name": "CO3+ 1216 MB"
+      }
+    ]
+  },
+  {
+    "name": "CO3+ (ER)",
+    "surgery": ["HIC"],
+    "fabricant": "SWING",
+    "models": [
+      {
+        "name": "CO3+ 0913 ER"
+      },
+      {
+        "name": "CO3+ 1114 ER"
+      },
+      {
+        "name": "CO3+ 1215 ER"
+      }
+    ]
+  },
+  {
+    "name": "CO3A",
+    "surgery": ["HIC"],
+    "fabricant": "SWING",
+    "models": [
+      {
+        "name": "CO3A 0913 D+"
+      },
+      {
+        "name": "CO3A 0913 G+"
+      },
+      {
+        "name": "CO3A 1115 D+"
+      },
+      {
+        "name": "CO3A 1115 G+"
+      },
+      {
+        "name": "CO3A 1216 D+"
+      },
+      {
+        "name": "CO3A 1216 G+"
+      }
+    ]
+  },
+  {
+    "name": "CO3+ (S)",
+    "surgery": ["HIL", "HIC", "ERM"],
+    "fabricant": "SWING",
+    "models": [
+      {
+        "name": "CO3+ 1015 S"
+      },
+      {
+        "name": "CO3+ 1515 S"
+      },
+      {
+        "name": "CO3+ 1520 S"
+      },
+      {
+        "name": "CO3+ 1730 S"
+      }
+    ]
+  },
+  {
+    "name": "COPX (KH)",
+    "surgery": ["HIL"],
+    "fabricant": "SWING",
+    "models": [
+      {
+        "name": "COPX 5595 L"
+      },
+      {
+        "name": "COPX 6513 L"
+      }
+    ]
+  },
+  {
+    "name": "COPX (RABAT)",
+    "surgery": ["HIL"],
+    "fabricant": "SWING",
+    "models": [
+      {
+        "name": "COPX 0812 L"
+      },
+      {
+        "name": "COPX 0914 L"
+      }
+    ]
+  },
+  {
+    "name": "COPX (MA)",
+    "surgery": ["HIC"],
+    "fabricant": "SWING",
+    "models": [
+      {
+        "name": "COPX 0913 MA"
+      },
+      {
+        "name": "COPX 1114 MA"
+      },
+      {
+        "name": "COPX 1215 MA"
+      },
+      {
+        "name": "COPX 1216 MA"
+      }
+    ]
+  },
+  {
+    "name": "COPX (ER)",
+    "surgery": ["HIC"],
+    "fabricant": "SWING",
+    "models": [
+      {
+        "name": "COPX 0913 ER"
+      },
+      {
+        "name": "COPX 1114 ER"
+      },
+      {
+        "name": "COPX 1215 ER"
+      }
+    ]
+  },
+  {
+    "name": "COPX (S)",
+    "surgery": ["HIC", "ERM"],
+    "fabricant": "SWING",
+    "models": [
+      {
+        "name": "COPX 1015 S"
+      },
+      {
+        "name": "COPX 1515 S"
+      },
+      {
+        "name": "COPX 1520 S"
+      },
+      {
+        "name": "COPX 1730 S"
+      }
+    ]
+  },
+  {
+    "name": "IS180 (R)",
+    "surgery": ["HOC", "EIPC"],
+    "fabricant": "SWING",
+    "models": [
+      {
+        "name": "IS180 1000 R"
+      },
+      {
+        "name": "IS180 1200 R"
+      },
+      {
+        "name": "IS180 1600 R"
+      }
+    ]
+  },
+  {
+    "name": "IS180 (S)",
+    "surgery": ["HOC", "EIPL", "EIPC"],
+    "fabricant": "SWING",
+    "models": [
+      {
+        "name": "IS180 1015 S"
+      },
+      {
+        "name": "IS180 1520 S"
+      },
+      {
+        "name": "IS180 2030 S"
+      },
+      {
+        "name": "IS180 2535 S"
+      }
+    ]
+  },
+  {
+    "name": "IS180 (VO)",
+    "surgery": ["HOL", "EIPL"],
+    "fabricant": "SWING",
+    "models": [
+      {
+        "name": "IS180 1015 VO"
+      },
+      {
+        "name": "IS180 1200 VO"
+      },
+      {
+        "name": "IS180 1520 VO"
+      },
+      {
+        "name": "IS180 2030 VO"
+      },
+      {
+        "name": "IS180 2535 VO"
+      }
+    ]
+  },
+  {
+    "name": "IS180 (UC)",
+    "surgery": ["HOL"],
+    "fabricant": "SWING",
+    "models": [
+      {
+        "name": "IS180 0451 UC"
+      },
+      {
+        "name": "IS180 0651 UC"
+      },
+      {
+        "name": "IS180 0851 UC"
+      }
+    ]
+  },
+  {
+    "name": "SB3",
+    "surgery": ["BSU"],
+    "fabricant": "SWING",
+    "models": [
+      {
+        "name": "SB3 10400"
+      }
+    ]
+  },
+  {
+    "name": "SB4",
+    "surgery": ["BSU"],
+    "fabricant": "SWING",
+    "models": [
+      {
+        "name": "SB4 10400"
+      }
+    ]
+  },
+  {
+    "name": "SB3 (DG)",
+    "surgery": ["BSU"],
+    "fabricant": "SWING",
+    "models": [
+      {
+        "name": "SB3 10400 DG"
+      }
+    ]
+  },
+  {
+    "name": "SB4 (DG)",
+    "surgery": ["BSU"],
+    "fabricant": "SWING",
+    "models": [
+      {
+        "name": "SB4 10400 DG"
+      }
+    ]
+  },
+  {
+    "name": "SB3 (TO)",
+    "surgery": ["BSU"],
+    "fabricant": "SWING",
+    "models": [
+      {
+        "name": "SB3 10400 TO"
+      }
+    ]
+  },
+  {
+    "name": "SB4 (TO)",
+    "surgery": ["BSU"],
+    "fabricant": "SWING",
+    "models": [
+      {
+        "name": "SB4 10400 TO"
+      }
+    ]
+  },
+  {
+    "name": "SB3 (SP)",
+    "surgery": ["BSU"],
+    "fabricant": "SWING",
+    "models": [
+      {
+        "name": "SB3 10400 SP"
+      }
+    ]
+  },
+  {
+    "name": "SB4 (SP)",
+    "surgery": ["BSU"],
+    "fabricant": "SWING",
+    "models": [
+      {
+        "name": "SB4 10400 SP"
+      }
+    ]
+  },
+  {
+    "name": "PS2",
+    "surgery": ["PROLAPSUS"],
+    "fabricant": "SWING",
+    "models": [
+      {
+        "name": "PS2 18084"
+      },
+      {
+        "name": "PS2 24084"
+      }
+    ]
+  },
+  {
+    "name": "PS4",
+    "surgery": ["PROLAPSUS"],
+    "fabricant": "SWING",
+    "models": [
+      {
+        "name": "PS4 18084"
+      },
+      {
+        "name": "PS4 24040"
+      },
+      {
+        "name": "PS4 24084"
+      }
+    ]
+  },
+  {
+    "name": "BARD (KH)",
+    "surgery": ["HIL"],
+    "fabricant": "AUTRES"
+  },
+  {
+    "name": "BARD (ADHESIX)",
+    "surgery": ["HIL", "ERM"],
+    "fabricant": "AUTRES"
+  },
+  {
+    "name": "PROGRIP (TEM)",
+    "surgery": ["HIL", "HIC"],
+    "fabricant": "AUTRES"
+  },
+  {
+    "name": "PROGRIP (PP)",
+    "surgery": ["HIL"],
+    "fabricant": "AUTRES"
+  },
+  {
+    "name": "MEDTRONIC (KH)",
+    "surgery": ["HIL"],
+    "fabricant": "AUTRES"
+  },
+  {
+    "name": "COUSIN (4D MESH)",
+    "surgery": ["HIL", "HIC"],
+    "fabricant": "AUTRES"
+  },
+  {
+    "name": "COUSIN (BIOMESH)",
+    "surgery": ["HIL", "HIC"],
+    "fabricant": "AUTRES"
+  },
+  {
+    "name": "J&J PMS (KH)",
+    "surgery": ["HIL"],
+    "fabricant": "AUTRES"
+  },
+  {
+    "name": "MICROVAL",
+    "surgery": ["HIL", "HIC"],
+    "fabricant": "AUTRES"
+  },
+  {
+    "name": "3D MAX (STD)",
+    "surgery": ["HIC"],
+    "fabricant": "AUTRES"
+  },
+  {
+    "name": "3D MAX (LIGHT)",
+    "surgery": ["HIC"],
+    "fabricant": "AUTRES"
+  },
+  {
+    "name": "PROGRIP (LPG)",
+    "surgery": ["HIC"],
+    "fabricant": "AUTRES"
+  },
+  {
+    "name": "VENTRALEX",
+    "surgery": ["HOL"],
+    "fabricant": "AUTRES"
+  },
+  {
+    "name": "MEDTRONIC",
+    "surgery": ["ERM", "HOL"],
+    "fabricant": "AUTRES"
+  },
+  {
+    "name": "IS180 (R&S)",
+    "surgery": ["HOC", "EIPC", "EIPL"],
+    "fabricant": "AUTRES"
+  },
+  {
+    "name": "CABS'AIR",
+    "surgery": ["HOL"],
+    "fabricant": "AUTRES"
+  },
+  {
+    "name": "MEDTRONIC (PCO)",
+    "surgery": ["HOC", "EIPC", "EIPL"],
+    "fabricant": "AUTRES"
+  },
+  {
+    "name": "BARD",
+    "surgery": ["HOC", "EIPL", "EIPC"],
+    "fabricant": "AUTRES"
+  },
+  {
+    "name": "COUSIN",
+    "surgery": ["HOC", "EIPL", "EIPC"],
+    "fabricant": "AUTRES"
+  },
+  {
+    "name": "ETHICON PROLENE",
+    "surgery": ["ERM"],
+    "fabricant": "AUTRES"
+  },
+  {
+    "name": "BARD (PP)",
+    "surgery": ["ERM"],
+    "fabricant": "AUTRES"
+  },
+  {
+    "name": "PROGRIP",
+    "surgery": ["ERM"],
+    "fabricant": "AUTRES"
+  },
+  { "name": "J&J TVTO", "surgery": ["PROLAPSUS"], "fabricant": "AUTRES" },
+  { "name": "DILO TVT", "surgery": ["PROLAPSUS"], "fabricant": "AUTRES" },
+  { "name": "DILO TOT", "surgery": ["PROLAPSUS"], "fabricant": "AUTRES" },
+
+  {
+    "name": "COLOPLAST ARIS",
+    "surgery": ["PROLAPSUS"],
+    "fabricant": "AUTRES"
+  },
+  {
+    "name": "COLOPLAST SUPRIS",
+    "surgery": ["PROLAPSUS"],
+    "fabricant": "AUTRES"
+  },
+  {
+    "name": "COUSIN SACROMESH",
+    "surgery": ["BSU"],
+    "fabricant": "AUTRES"
+  },
+  {
+    "name": "DILO PP",
+    "surgery": ["BSU"],
+    "fabricant": "AUTRES"
+  },
+  {
+    "name": "DILO PET",
+    "surgery": ["BSU"],
+    "fabricant": "AUTRES"
+  },
+  {
+    "name": "GYNEMESH",
+    "surgery": ["BSU"],
+    "fabricant": "AUTRES"
+  },
+  {
+    "name": "COLOPLAST RESTORELLE",
+    "surgery": ["BSU"],
+    "fabricant": "AUTRES"
+  }
+]

@@ -3,25 +3,27 @@ import seedRole from "./role.seed";
 import seedUsers from "./user.seed";
 import seedDepartment from "./departement.seed";
 import seedSecteur from "./secteur.seed";
-import { use } from "chai";
+import seedReferences from "./references.seed";
 
 const prisma = new PrismaClient();
 
 async function main() {
+  await prisma.model.deleteMany();
+  await prisma.product.deleteMany();
+
   await prisma.secteurUser.deleteMany();
-
   await prisma.secteur.deleteMany();
-
   await prisma.departement.deleteMany();
 
   await prisma.user.deleteMany();
-
   await prisma.role.deleteMany();
 
   const { admin, chef, commercial } = await seedRole(prisma);
   const { user1 } = await seedUsers(prisma, admin, chef, commercial);
   await seedDepartment(prisma);
   const secteurs = await seedSecteur(prisma);
+
+  await seedReferences(prisma);
 
   // add user to secteur
   const firstSecteur = secteurs[0];

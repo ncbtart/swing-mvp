@@ -15,6 +15,38 @@ datasource db {
     url      = env("DATABASE_URL")
 }
 
+enum Surgery {
+    HIL
+    HIC
+    HOL
+    HOC
+    EIPL
+    EIPC
+    ERM
+    PROLAPSUS
+    BSU
+}
+
+enum Fabricant {
+    SWING
+    AUTRES
+}
+
+model Product {
+    id        String    @id @default(cuid())
+    reference String    @unique
+    fabricant Fabricant
+    surgery   Surgery[]
+    models    Model[]
+}
+
+model Model {
+    id        String  @id @default(cuid())
+    name      String
+    product   Product @relation(fields: [productId], references: [id])
+    productId String
+}
+
 model Departement {
     id        String   @id @default(cuid())
     name      String

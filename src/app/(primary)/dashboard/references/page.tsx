@@ -11,12 +11,16 @@ import { debounce } from "lodash";
 import GenericTable from "@/app/_components/core/GenericTable";
 import Link from "next/link";
 
-import { RoleNameLabels } from "@/utils/constantes";
-import { RoleName } from "@prisma/client";
+import { Fabricant, Surgery } from "@prisma/client";
 import { usePopup } from "@/app/_hooks/usePopUp";
 
 export default function Utilisateurs() {
-  const [roleFilter, setRoleFilter] = useState<RoleName | undefined>(undefined);
+  const [fabricantFilter, setFabricantFilter] = useState<Fabricant | undefined>(
+    undefined,
+  );
+
+  const [surgeryFilter, setSurgeryFilter] = useState<Surgery | undefined>();
+
   const [searchInputValue, setSearchInputValue] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState(searchInputValue);
 
@@ -34,38 +38,42 @@ export default function Utilisateurs() {
     };
   }, [searchInputValue]);
 
-  const [skip, setSkip] = useState(0);
-
-  const [deleteUser, setDeleteUser] = useState<{
-    role: {
-      id: string;
-      name: RoleName;
-    };
-    firstname: string | null;
-    lastname: string | null;
-    email: string | null;
+  const [deleteReference, setDeleteReference] = useState<{
     id: string;
+    reference: string;
+    fabricant: Fabricant;
+    surgery: Surgery[];
   } | null>(null);
+
+  const [skip, setSkip] = useState(0);
 
   const { setTitle, setMessage, openPopup } = usePopup();
 
   const {
-    data: users,
+    data: references,
     isPending,
     refetch,
-  } = api.user.findAll.useQuery({
+  } = api.reference.findAll.useQuery({
     skip,
     take: 10,
     search: debouncedSearch,
-    role: roleFilter,
+    fabricant: fabricantFilter,
+    surgery: surgeryFilter,
   });
 
-  const deleteUserMutation = api.user.delete.useMutation({
+  const deleteMutation = api.reference.delete.useMutation({
     onSuccess: async () => {
-      setDeleteUser(null);
+      setDeleteReference(null);
       await refetch();
-      setTitle("Utilisateur supprimé");
-      setMessage("L'utilisateur a été supprimé avec succès");
+      setTitle("Référence supprimée");
+      setMessage("La référence a été supprimée avec succès");
+      openPopup();
+    },
+    onError: () => {
+      setTitle("Erreur");
+      setMessage(
+        "Une erreur s'est produite lors de la suppression de la référence",
+      );
       openPopup();
     },
   });
@@ -74,49 +82,79 @@ export default function Utilisateurs() {
     console.log(`Bouton actif : ${activeLabel}`);
   };
 
-  const handleDeleteUser = () => {
-    if (!deleteUser) return;
-    deleteUserMutation.mutate({ userId: deleteUser.id });
+  const handleDeleteReference = async () => {
+    if (!deleteReference) return;
+    deleteMutation.mutate({ referenceId: deleteReference.id });
   };
 
   return (
     <div className="mx-auto flex min-h-screen max-w-screen-xl flex-col px-4 pb-16 pt-8">
       <div className="flex-grow">
         <main className="my-0">
-          <h1 className="text-xl text-black sm:text-2xl">Liste utilisateurs</h1>
+          <h1 className="text-xl text-black sm:text-2xl">
+            Liste Références Produits
+          </h1>
 
           <Link
-            href="/dashboard/users/create"
+            href="/dashboard/references/create"
             className="mt-4 inline-block text-blue-600"
           >
-            Ajouter un utilisateur
+            Ajouter une référence produit
           </Link>
 
           <div className="mt-4 flex items-center justify-between">
-            <ButtonGroup
-              buttons={[
-                { label: "Tous", onClick: () => setRoleFilter(undefined) },
-                {
-                  label: "Admins",
-                  onClick: () => setRoleFilter(RoleName.ADMIN),
-                },
-                {
-                  label: "Chefs Secteurs",
-                  onClick: () => setRoleFilter(RoleName.CHEF),
-                },
-                {
-                  label: "Commerciaux",
-                  onClick: () => setRoleFilter(RoleName.COMMERCIAL),
-                },
-              ]}
-              onActiveChange={handleActiveChange}
-            />
+            <div>
+              <ButtonGroup
+                buttons={[
+                  {
+                    label: "Tous",
+                    onClick: () => setFabricantFilter(undefined),
+                  },
+                  {
+                    label: "Swing",
+                    onClick: () => setFabricantFilter(Fabricant.SWING),
+                  },
 
-            <SearchInput
-              placeholder="Rechercher ..."
-              value={searchInputValue}
-              onChange={(e) => setSearchInputValue(e.target.value)}
-            />
+                  {
+                    label: "Autres",
+                    onClick: () => setFabricantFilter(Fabricant.AUTRES),
+                  },
+                ]}
+                onActiveChange={handleActiveChange}
+              />
+            </div>
+
+            <div className="flex flex-row">
+              <select
+                value={surgeryFilter}
+                onChange={(e) => {
+                  if (e.target.value === "") {
+                    return setSurgeryFilter(undefined);
+                  }
+
+                  setSurgeryFilter(e.target.value as Surgery);
+                }}
+                className="mr-4 rounded-md border-gray-200 p-2.5 pe-14 shadow-sm sm:text-sm"
+                style={
+                  surgeryFilter === undefined
+                    ? { color: "rgb(156 163 175 / var(--tw-border-opacity));" }
+                    : {}
+                }
+              >
+                <option value={""}>Selectionner ...</option>
+                {Object.entries(Surgery).map(([key, value]) => (
+                  <option key={key} value={key}>
+                    {value}
+                  </option>
+                ))}
+              </select>
+
+              <SearchInput
+                placeholder="Rechercher ..."
+                value={searchInputValue}
+                onChange={(e) => setSearchInputValue(e.target.value)}
+              />
+            </div>
           </div>
 
           {isPending ? (
@@ -142,25 +180,28 @@ export default function Utilisateurs() {
             </div>
           ) : (
             <GenericTable
-              data={users?.data.map((u) => ({ ...u, role: u.role.name })) ?? []}
+              data={references?.data ?? []}
               columns={[
-                { key: "firstname", title: "Prénom" },
-                { key: "lastname", title: "Nom" },
-                { key: "email", title: "Email" },
+                { key: "reference", title: "Référence" },
+                { key: "fabricant", title: "Fabricant" },
                 {
-                  key: "role",
-                  title: "Rôle",
-                  render: (role: string | null) =>
-                    RoleNameLabels[role as RoleName],
+                  key: "surgery",
+                  title: "Chirurgie",
+                  render: (surgery: string | Surgery[]) => {
+                    if (Array.isArray(surgery)) {
+                      return surgery.join(", ");
+                    }
+                    return "";
+                  },
                 },
                 {
                   key: "id",
                   title: "",
-                  render: (id: string | null) => (
+                  render: (id: string | Surgery[]) => (
                     <div className="text-center">
                       <span className="inline-flex overflow-hidden rounded-md border bg-white shadow-sm">
                         <Link
-                          href={`/dashboard/users/edit/${id}`}
+                          href={`/dashboard/references/edit/${id as string}`}
                           className="inline-block border-e p-3 text-gray-700 hover:bg-gray-50 focus:relative"
                           title="Edit User"
                         >
@@ -184,8 +225,10 @@ export default function Utilisateurs() {
                           className="inline-block p-3 text-gray-700 hover:bg-gray-50 focus:relative"
                           title="Delete User"
                           onClick={() =>
-                            setDeleteUser(
-                              users?.data.find((u) => u.id === id) ?? null,
+                            setDeleteReference(
+                              references?.data.find(
+                                (r) => r.id === (id as string),
+                              ) ?? null,
                             )
                           }
                         >
@@ -211,7 +254,7 @@ export default function Utilisateurs() {
               ]}
               skip={skip}
               take={10}
-              total={users?.total ?? 0}
+              total={references?.total ?? 0}
               onPageChange={(skip) => {
                 setSkip(skip);
               }}
@@ -219,7 +262,7 @@ export default function Utilisateurs() {
           )}
         </main>
 
-        {deleteUser && (
+        {deleteReference && (
           <div
             role="alert"
             className="fixed inset-0 z-50 flex items-center justify-center"
@@ -234,21 +277,21 @@ export default function Utilisateurs() {
                   <p className="mt-2 text-sm text-gray-700">
                     Êtes-vous sûr de vouloir supprimer{" "}
                     <strong>
-                      {deleteUser.firstname} {deleteUser.lastname}
+                      {deleteReference.reference} - {deleteReference.fabricant}
                     </strong>
                   </p>
 
                   <div className="mt-4 flex gap-2">
                     <button
                       className="block rounded-lg px-4 py-2 text-gray-700 transition hover:bg-gray-50"
-                      onClick={() => setDeleteUser(null)}
+                      onClick={() => setDeleteReference(null)}
                     >
                       <span className="text-sm">Annuler</span>
                     </button>
 
                     <button
                       className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700"
-                      onClick={handleDeleteUser}
+                      onClick={handleDeleteReference}
                     >
                       <span className="text-sm">Valider</span>
                     </button>
@@ -257,7 +300,7 @@ export default function Utilisateurs() {
 
                 <button
                   className="text-gray-500 transition hover:text-gray-600"
-                  onClick={() => setDeleteUser(null)}
+                  onClick={() => setDeleteReference(null)}
                 >
                   <span className="sr-only">Dismiss popup</span>
 

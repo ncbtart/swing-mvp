@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import SearchInput from "@/app/_components/core/SearchInput";
 import { api } from "@/trpc/react";
 
-import { debounce, set } from "lodash";
+import { debounce } from "lodash";
 
 import GenericTable from "@/app/_components/core/GenericTable";
 import Link from "next/link";
@@ -236,8 +236,8 @@ export default function Secteurs() {
                     className="h-6 w-6"
                   >
                     <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
                       d="M6 18L18 6M6 6l12 12"
                     />
                   </svg>
