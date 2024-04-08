@@ -15,6 +15,26 @@ datasource db {
     url      = env("DATABASE_URL")
 }
 
+enum EtablissementType {
+    HOPITAL
+    CLINIQUE
+}
+
+model Etablissement {
+    id            String            @id @default(cuid())
+    status        Boolean
+    name          String
+    type          EtablissementType
+    isClient      Boolean
+    departement   Departement?      @relation(fields: [departementId], references: [id])
+    departementId String?
+    adresseLiv    String?
+    adresseFix    String
+    codePostal    String
+    ville         String
+    telephone     String
+}
+
 enum Surgery {
     HIL
     HIC
@@ -48,11 +68,12 @@ model Model {
 }
 
 model Departement {
-    id        String   @id @default(cuid())
-    name      String
-    code      String
-    secteur   Secteur? @relation(fields: [secteurId], references: [id])
-    secteurId String?
+    id            String          @id @default(cuid())
+    name          String
+    code          String
+    secteur       Secteur?        @relation(fields: [secteurId], references: [id])
+    secteurId     String?
+    Etablissement Etablissement[]
 }
 
 model Secteur {

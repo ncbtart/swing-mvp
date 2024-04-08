@@ -203,7 +203,7 @@ export default function Utilisateurs() {
                         <Link
                           href={`/dashboard/references/edit/${id as string}`}
                           className="inline-block border-e p-3 text-gray-700 hover:bg-gray-50 focus:relative"
-                          title="Edit User"
+                          title="Edit Reference"
                         >
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -223,7 +223,7 @@ export default function Utilisateurs() {
 
                         <button
                           className="inline-block p-3 text-gray-700 hover:bg-gray-50 focus:relative"
-                          title="Delete User"
+                          title="Delete Reference"
                           onClick={() =>
                             setDeleteReference(
                               references?.data.find(
