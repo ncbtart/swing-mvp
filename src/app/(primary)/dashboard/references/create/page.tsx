@@ -110,10 +110,10 @@ export default function CreateReference() {
   };
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-screen-xl flex-col px-4 pb-16 pt-8">
+    <div className="mx-auto flex min-h-screen max-w-screen-2xl flex-col px-4 pb-16">
       <div className="flex-grow">
         <main className="my-0">
-          <h1 className="text-xl text-black sm:text-2xl">
+          <h1 className="text-xl font-medium text-black sm:text-2xl">
             Création d&apos;une référence produit
           </h1>
 
@@ -171,7 +171,7 @@ export default function CreateReference() {
                 <div className="mt-3 flow-root rounded-lg border border-gray-100 py-3 shadow-sm">
                   <div className="mb-4 grid grid-flow-row grid-cols-2 gap-4 px-4 sm:grid-cols-5">
                     <h6 className="col-span-2 self-center font-medium">
-                      Chirugie
+                      Chirugies
                     </h6>
 
                     <div className="col-span-2">
@@ -257,7 +257,7 @@ export default function CreateReference() {
                   <div className="mt-3 flow-root rounded-lg border border-gray-100 py-3 shadow-sm">
                     <div className="mb-4 grid grid-flow-row grid-cols-2 gap-4 px-4 sm:grid-cols-5">
                       <h6 className="col-span-2 self-center font-medium">
-                        Models
+                        Modèles
                       </h6>
 
                       <div className="col-span-2">

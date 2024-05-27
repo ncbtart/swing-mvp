@@ -1,6 +1,6 @@
 export default function Dashboard() {
   return (
-    <div className="mx-auto flex min-h-screen max-w-2xl flex-col px-4 pb-16 pt-8">
+    <div className="mx-auto flex min-h-screen max-w-2xl flex-col px-4 pb-16">
       <div className="flex-grow">
         <main className="my-0">
           <h1 className="text-2xl font-bold text-indigo-600 sm:text-3xl">

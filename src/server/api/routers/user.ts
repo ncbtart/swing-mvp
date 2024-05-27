@@ -6,6 +6,7 @@ import { paginationSchema } from "@/server/schema";
 import bcrypt from "bcrypt";
 import { db } from "@/server/db";
 import { RoleName } from "@prisma/client";
+import { formatPrenom } from "@/utils";
 
 const saltRounds = 10; // Nombre de tours de sel, ajustez selon les besoins
 
@@ -75,8 +76,8 @@ export const userRouter = createTRPCRouter({
 
       return ctx.db.user.create({
         data: {
-          firstname: input.firstname,
-          lastname: input.lastname,
+          firstname: formatPrenom(input.firstname),
+          lastname: input.lastname.toUpperCase(),
           username,
           email: input.email,
           password: hashedPassword,
@@ -172,6 +173,7 @@ export const userRouter = createTRPCRouter({
         OR: [
           { role: { name: RoleName.COMMERCIAL } },
           { role: { name: RoleName.CHEF } },
+          { role: { name: RoleName.ADMIN } },
         ],
       },
       select: {
@@ -185,6 +187,40 @@ export const userRouter = createTRPCRouter({
 
     return commerciaux;
   }),
+
+  findCommerciauxBySecteur: protectedProcedure
+    .input(z.object({ secteurId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const commerciaux = await ctx.db.user.findMany({
+        where: {
+          AND: [
+            {
+              OR: [
+                { role: { name: RoleName.COMMERCIAL } },
+                { role: { name: RoleName.CHEF } },
+                { role: { name: RoleName.ADMIN } },
+              ],
+            },
+            {
+              SecteurUser: {
+                some: {
+                  secteurId: input.secteurId,
+                },
+              },
+            },
+          ],
+        },
+        select: {
+          id: true,
+          firstname: true,
+          lastname: true,
+          role: { select: { name: true } },
+        },
+        orderBy: { lastname: "asc" },
+      });
+
+      return commerciaux;
+    }),
 
   edit: protectedProcedure
     .input(
@@ -238,8 +274,8 @@ export const userRouter = createTRPCRouter({
         return ctx.db.user.update({
           where: { id: input.userId },
           data: {
-            firstname: input.firstname,
-            lastname: input.lastname,
+            firstname: formatPrenom(input.firstname),
+            lastname: input.lastname.toUpperCase(),
             email: input.email,
             role: { connect: { id: input.roleId } },
             password: hashedPassword,
@@ -250,8 +286,8 @@ export const userRouter = createTRPCRouter({
       return ctx.db.user.update({
         where: { id: input.userId },
         data: {
-          firstname: input.firstname,
-          lastname: input.lastname,
+          firstname: formatPrenom(input.firstname),
+          lastname: input.lastname.toUpperCase(),
           email: input.email,
           role: { connect: { id: input.roleId } },
         },

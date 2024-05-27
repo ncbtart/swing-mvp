@@ -61,11 +61,11 @@ export default function UserCreatePage() {
 
   return (
     <>
-      <div className="mx-auto flex min-h-screen max-w-screen-xl flex-col px-4 pb-16 pt-8">
+      <div className="mx-auto flex min-h-screen max-w-screen-2xl flex-col px-4 pb-16">
         <div className="flex-grow">
           <main className="my-0">
-            <h1 className="text-xl text-black sm:text-2xl">
-              Ajouter un utilisateur
+            <h1 className="text-xl font-medium text-black sm:text-2xl">
+              Création d&apos;un utilisateur
             </h1>
 
             <Link
@@ -174,7 +174,7 @@ export default function UserCreatePage() {
                       <label
                         key={role.id}
                         htmlFor={role.name}
-                        className="mt-6 block w-full cursor-pointer rounded-lg border border-gray-200 p-3 text-gray-600 hover:border-black has-[:checked]:border-black has-[:checked]:bg-black has-[:checked]:text-white"
+                        className="mt-6 block w-full cursor-pointer rounded-lg border border-gray-200 p-3 text-blue-600 has-[:checked]:border-blue-900 has-[:checked]:bg-blue-900 has-[:checked]:text-white hover:border-blue-900"
                         tabIndex={0}
                       >
                         <input

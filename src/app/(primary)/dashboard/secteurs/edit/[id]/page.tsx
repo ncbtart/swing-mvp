@@ -172,7 +172,7 @@ export default function SecteurEditPage({
 
   if (!isPending && !secteur) {
     return (
-      <div className="mx-auto flex min-h-screen max-w-screen-xl flex-col px-4 pb-16 pt-8">
+      <div className="mx-auto flex min-h-screen max-w-screen-2xl flex-col px-4 pb-16">
         <div className="flex-grow">
           <main className="my-0">
             <h1 className="text-center text-xl text-red-600 sm:text-4xl">
@@ -189,7 +189,7 @@ export default function SecteurEditPage({
 
   return (
     <>
-      <div className="mx-auto flex min-h-screen max-w-screen-xl flex-col px-4 pb-16 pt-8">
+      <div className="mx-auto flex min-h-screen max-w-screen-2xl flex-col px-4 pb-16">
         <div className="flex-grow">
           <main className="my-0">
             <h1 className="text-xl text-black sm:text-2xl">
@@ -316,7 +316,7 @@ export default function SecteurEditPage({
                           }) => (
                             <div
                               key={dept.id}
-                              className="grid grid-cols-5 gap-1 py-3 even:bg-gray-50 sm:grid-cols-5 sm:gap-4"
+                              className="grid border-collapse grid-cols-5 gap-1 border border-gray-100 py-3 even:bg-gray-50 sm:grid-cols-5 sm:gap-4"
                             >
                               <dt className="px-1 text-center font-medium text-gray-900">
                                 {dept.code}
@@ -418,7 +418,7 @@ export default function SecteurEditPage({
                         {commerciaux.map((commercial) => (
                           <div
                             key={commercial.user.id}
-                            className="grid grid-cols-5 gap-1 py-3 even:bg-gray-50 sm:grid-cols-4 sm:gap-4"
+                            className="grid border-collapse grid-cols-5 gap-1 border border-gray-100 py-3 shadow-sm even:bg-gray-50 sm:grid-cols-4 sm:gap-4"
                           >
                             <dt className="px-1 text-center font-medium text-gray-900 sm:col-span-2">
                               {commercial.user.firstname}{" "}

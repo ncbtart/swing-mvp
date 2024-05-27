@@ -7,6 +7,8 @@ import { NextResponse } from "next/server";
 const pathRolesMap = {
   "/dashboard/users": [RoleName.ADMIN] as RoleName[],
   "/dashboard/secteurs": [RoleName.ADMIN] as RoleName[],
+  "/dashboard/references": [RoleName.ADMIN] as RoleName[],
+  "/dashboard/ao": [RoleName.ADMIN] as RoleName[],
 };
 
 export default withAuth(

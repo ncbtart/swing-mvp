@@ -33,7 +33,7 @@ const ButtonGroup: React.FC<ButtonGroupProps> = ({
   };
 
   return (
-    <div className="mt-4 inline-flex rounded-lg border border-gray-100 bg-gray-100 p-1">
+    <div className="inline-flex rounded-lg border border-gray-100 bg-gray-100 p-1">
       {buttons.map((button) => (
         <button
           key={button.label}

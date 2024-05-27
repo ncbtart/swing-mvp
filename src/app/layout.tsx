@@ -3,8 +3,6 @@ import "@/styles/globals.css";
 import { Inter } from "next/font/google";
 
 import { TRPCReactProvider } from "@/trpc/react";
-import { PopupProvider } from "@/app/_hooks/usePopUp";
-import PopUp from "./popup";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -25,12 +23,7 @@ export default function RootLayout({
   return (
     <html lang="fr">
       <body className={`font-sans ${inter.variable}`}>
-        <TRPCReactProvider>
-          <PopupProvider>
-            {children}
-            <PopUp />
-          </PopupProvider>
-        </TRPCReactProvider>
+        <TRPCReactProvider>{children}</TRPCReactProvider>
       </body>
     </html>
   );

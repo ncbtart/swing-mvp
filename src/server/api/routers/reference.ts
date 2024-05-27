@@ -16,14 +16,6 @@ export const referenceRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       // check if authorized
 
-      const isAdmin = ctx.session.user.role.name === RoleName.ADMIN;
-
-      if (!isAdmin) {
-        throw new Error(
-          "Vous n'avez pas l'autorisation de supprimer ce secteur",
-        );
-      }
-
       let whereClause = {};
 
       if (input.search) {
@@ -51,6 +43,9 @@ export const referenceRouter = createTRPCRouter({
         take: input.take,
         skip: input.skip,
         orderBy: { reference: "asc" },
+        include: {
+          models: true,
+        },
       });
 
       const count = await ctx.db.product.count({ where: whereClause });
@@ -198,5 +193,26 @@ export const referenceRouter = createTRPCRouter({
       });
 
       return true;
+    }),
+  findAllModels: protectedProcedure
+    .input(z.object({ surgery: z.nativeEnum(Surgery).optional().nullable() }))
+    .query(async ({ ctx, input }) => {
+      let whereClause = {};
+
+      if (input.surgery) {
+        whereClause = {
+          product: {
+            surgery: {
+              has: input.surgery,
+            },
+            fabricant: Fabricant.SWING,
+          },
+        };
+      }
+
+      return ctx.db.model.findMany({
+        where: whereClause,
+        orderBy: { name: "asc" },
+      });
     }),
 });

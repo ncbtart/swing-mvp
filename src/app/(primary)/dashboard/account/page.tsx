@@ -53,10 +53,12 @@ export default function Account() {
   };
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-screen-xl flex-col px-4 pb-16 pt-8">
+    <div className="mx-auto flex min-h-screen max-w-screen-2xl flex-col px-4 pb-16">
       <div className="flex-grow">
         <main className="my-0">
-          <h1 className="text-xl text-black sm:text-2xl">Mes informations</h1>
+          <h1 className="text-xl font-medium text-black sm:text-2xl">
+            Mes informations
+          </h1>
           <div className="mt-12 grid grid-cols-1 gap-2 sm:grid-cols-3">
             {/** profil default svg */}
             <div className="col-span-1">

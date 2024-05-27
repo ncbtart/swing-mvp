@@ -4,6 +4,10 @@ import { roleRouter } from "./routers/role";
 import { secteurRouter } from "./routers/secteur";
 import { departementRouter } from "./routers/departement";
 import { referenceRouter } from "./routers/reference";
+import { etablissementtRouter } from "./routers/etablissement";
+import { chirurgienRouter } from "./routers/chirurgien";
+import { aoRouter } from "./routers/ao";
+import { activitesRouter } from "./routers/activites";
 
 /**
  * This is the primary router for your server.
@@ -16,6 +20,10 @@ export const appRouter = createTRPCRouter({
   secteur: secteurRouter,
   departement: departementRouter,
   reference: referenceRouter,
+  etablissement: etablissementtRouter,
+  chirurgien: chirurgienRouter,
+  source: aoRouter,
+  activite: activitesRouter,
 });
 
 // export type definition of API

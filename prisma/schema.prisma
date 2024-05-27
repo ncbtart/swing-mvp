@@ -21,18 +21,22 @@ enum EtablissementType {
 }
 
 model Etablissement {
-    id            String            @id @default(cuid())
-    status        Boolean
-    name          String
-    type          EtablissementType
-    isClient      Boolean
-    departement   Departement?      @relation(fields: [departementId], references: [id])
-    departementId String?
-    adresseLiv    String?
-    adresseFix    String
-    codePostal    String
-    ville         String
-    telephone     String
+    id              String            @id @default(cuid())
+    status          Boolean
+    group           String?
+    central         String?
+    name            String
+    type            EtablissementType
+    isClient        Boolean
+    departement     Departement?      @relation(fields: [departementId], references: [id])
+    departementId   String?
+    adresseComp     String?
+    adresse         String
+    codePostal      String
+    ville           String
+    telephone       String
+    Chirurgien      Chirurgien[]
+    EtablissementAO EtablissementAO[]
 }
 
 enum Surgery {
@@ -53,18 +57,94 @@ enum Fabricant {
 }
 
 model Product {
-    id        String    @id @default(cuid())
-    reference String    @unique
-    fabricant Fabricant
-    surgery   Surgery[]
-    models    Model[]
+    id            String          @id @default(cuid())
+    reference     String          @unique
+    fabricant     Fabricant
+    surgery       Surgery[]
+    models        Model[]
+    ReferenceChir ReferenceChir[]
+    ProductLot    ProductLot[]
+}
+
+enum Civilite {
+    M
+    MME
+    AUTRES
+}
+
+enum Jour {
+    LUNDI
+    MARDI
+    MERCREDI
+    JEUDI
+    VENDREDI
+}
+
+enum Service {
+    CHIR_DIGESTIF
+    CHIR_UROLOGIE
+    CHIR_GINECO
+    PHARMACIE
+    X_BLOC
+}
+
+enum Fonction {
+    CHIR
+    IBODE
+    PROFESSEUR
+    PRACTICIEN
+    CHEF_DE_SERVICE
+    PHARM_GERANT
+    PHARM_ADJOINT
+}
+
+model Chirurgien {
+    id                   String                 @id @default(cuid())
+    civilite             Civilite
+    fonction             Fonction
+    firstname            String
+    lastname             String
+    email                String                 @unique
+    phone                String
+    phone2               String?
+    adresse              String?
+    service              Service
+    joursBloc            Jour[]
+    joursConsult         Jour[]
+    etablissementId      String
+    etablissement        Etablissement          @relation(fields: [etablissementId], references: [id])
+    references           ReferenceChir[]
+    isDiffusion          Boolean                @default(false)
+    usingSurgery         UsingSurgery[]
+    ChirurgienRendezVous ChirurgienRendezVous[]
+}
+
+model ReferenceChir {
+    id           String     @id @default(cuid())
+    chirurgien   Chirurgien @relation(fields: [chirurgienId], references: [id], onDelete: Cascade)
+    chirurgienId String
+    product      Product    @relation(fields: [productId], references: [id])
+    productId    String
+    surgery      Surgery
+}
+
+model UsingSurgery {
+    id           String     @id @default(cuid())
+    surgery      Surgery
+    chirurgien   Chirurgien @relation(fields: [chirurgienId], references: [id], onDelete: Cascade)
+    chirurgienId String
+    isUsing      Boolean    @default(true)
+    isTapp       Boolean    @default(false)
+    isTep        Boolean    @default(false)
 }
 
 model Model {
-    id        String  @id @default(cuid())
-    name      String
-    product   Product @relation(fields: [productId], references: [id])
-    productId String
+    id                   String                 @id @default(cuid())
+    name                 String                 @unique
+    product              Product                @relation(fields: [productId], references: [id])
+    productId            String
+    ProductLot           ProductLot[]
+    ModelEssaiRendezVous ModelEssaiRendezVous[]
 }
 
 model Departement {
@@ -87,8 +167,85 @@ model SecteurUser {
     id        String  @id @default(cuid())
     secteurId String
     userId    String
-    secteur   Secteur @relation(fields: [secteurId], references: [id])
+    secteur   Secteur @relation(fields: [secteurId], references: [id], onDelete: Cascade)
     user      User    @relation(fields: [userId], references: [id])
+}
+
+enum SourceAO {
+    GHT
+    GROUPE
+    CH
+    OFFRE
+}
+
+model EtablissementAO {
+    id              String        @id @default(cuid())
+    sourceId        String
+    source          Source        @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+    etablissement   Etablissement @relation(fields: [etablissementId], references: [id])
+    etablissementId String
+}
+
+enum TypeMarche {
+    CHIR_DIGESTIF
+    CHIR_UROLOGIE
+    CHIR_GINECO
+}
+
+enum Attribution {
+    INFRUCTUEUX
+    SANS_SUITE
+    EN_COURS
+}
+
+model Marche {
+    id       String     @id @default(cuid())
+    type     TypeMarche
+    sourceId String
+    source   Source     @relation(fields: [sourceId], references: [id])
+    lot      Lot[]
+}
+
+model ProductLot {
+    id        String   @id @default(cuid())
+    productId String?
+    product   Product? @relation(fields: [productId], references: [id])
+    modelId   String?
+    model     Model?   @relation(fields: [modelId], references: [id])
+    lot       Lot      @relation(fields: [lotId], references: [id], onDelete: Cascade)
+    lotId     String
+    prix      Float?
+}
+
+model Lot {
+    id          String       @id @default(cuid())
+    name        String
+    numero      String
+    marche      Marche       @relation(fields: [marcheId], references: [id])
+    marcheId    String
+    fabricant   Fabricant?
+    attribution Attribution
+    productLot  ProductLot[]
+}
+
+model Source {
+    id String @id @default(cuid())
+
+    status          Boolean           @default(false)
+    source          SourceAO
+    name            String
+    etablissementAO EtablissementAO[]
+
+    dateDebut    DateTime
+    dateFin      DateTime
+    consultation String
+    numero       String
+    objet        String
+    marche       Marche[]
+
+    createdBy   User?    @relation(fields: [createdById], references: [id])
+    createdById String?
+    createdAt   DateTime @default(now())
 }
 
 // Necessary for Next auth
@@ -130,6 +287,55 @@ model Role {
     user User[]
 }
 
+model ChirurgienRendezVous {
+    id           String     @id @default(cuid())
+    chirurgien   Chirurgien @relation(fields: [chirurgienId], references: [id])
+    chirurgienId String
+    rendezVous   RendezVous @relation(fields: [rendezVousId], references: [id])
+    rendezVousId String
+    done         Boolean    @default(false)
+    observation  String?
+}
+
+enum RendezVousType {
+    RDV1
+    RDV1_CONSULT_CHIR
+    RDV1_BLOC_CHIR
+    RDV1_SBO
+    RDV1_IMPLANTATION
+    RDV2
+    RDV2_CONSULT_CHIR
+    RDV2_BLOC_CHIR
+    RDV2_SBO
+    RDV2_IMPLANTATION
+    RDV_STAFF_CHIR
+    RDV_VALIDATION
+    RDV_FORMATION
+    ESSAI1
+    ESSAI2
+}
+
+model ModelEssaiRendezVous {
+    id           String     @id @default(cuid())
+    model        Model      @relation(fields: [modelId], references: [id])
+    modelId      String
+    rendezVous   RendezVous @relation(fields: [rendezVousId], references: [id])
+    rendezVousId String
+    surgery      Surgery
+    done         Boolean    @default(false)
+}
+
+model RendezVous {
+    id                   String                 @id @default(cuid())
+    date                 DateTime
+    dateFin              DateTime
+    chirurgiens          ChirurgienRendezVous[]
+    type                 RendezVousType
+    commercial           User                   @relation(fields: [commercialId], references: [id])
+    commercialId         String
+    ModelEssaiRendezVous ModelEssaiRendezVous[]
+}
+
 model User {
     id            String    @id @default(cuid())
     firstname     String?
@@ -146,6 +352,8 @@ model User {
     role          Role      @relation(fields: [roleId], references: [id])
 
     SecteurUser SecteurUser[]
+    Source      Source[]
+    RendezVous  RendezVous[]
 }
 
 model VerificationToken {

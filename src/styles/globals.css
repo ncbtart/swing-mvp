@@ -17,3 +17,15 @@ select {
   text-indent: 1px;
   text-overflow: '';
 }
+
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none; /* Pour Chrome, Safari */
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield; /* Pour Firefox */
+  appearance: textfield;
+}

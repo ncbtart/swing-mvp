@@ -80,10 +80,12 @@ export default function Utilisateurs() {
   };
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-screen-xl flex-col px-4 pb-16 pt-8">
+    <div className="mx-auto flex min-h-screen max-w-screen-2xl flex-col px-4 pb-16">
       <div className="flex-grow">
         <main className="my-0">
-          <h1 className="text-xl text-black sm:text-2xl">Liste utilisateurs</h1>
+          <h1 className="text-xl font-medium text-black sm:text-2xl">
+            Liste utilisateurs
+          </h1>
 
           <Link
             href="/dashboard/users/create"
@@ -220,65 +222,68 @@ export default function Utilisateurs() {
         </main>
 
         {deleteUser && (
-          <div
-            role="alert"
-            className="fixed inset-0 z-50 flex items-center justify-center"
-          >
-            <div className="rounded-xl border border-gray-100 bg-white p-8">
-              <div className="flex items-start gap-4">
-                <div className="flex-1">
-                  <strong className="block font-medium text-gray-900">
-                    Supprimer utilisateur
-                  </strong>
-
-                  <p className="mt-2 text-sm text-gray-700">
-                    Êtes-vous sûr de vouloir supprimer{" "}
-                    <strong>
-                      {deleteUser.firstname} {deleteUser.lastname}
+          <>
+            <div
+              role="alert"
+              className="fixed inset-0 z-50 flex items-center justify-center"
+            >
+              <div className="rounded-xl border border-gray-100 bg-white p-8">
+                <div className="flex items-start gap-4">
+                  <div className="flex-1">
+                    <strong className="block font-medium text-gray-900">
+                      Supprimer utilisateur
                     </strong>
-                  </p>
 
-                  <div className="mt-4 flex gap-2">
-                    <button
-                      className="block rounded-lg px-4 py-2 text-gray-700 transition hover:bg-gray-50"
-                      onClick={() => setDeleteUser(null)}
-                    >
-                      <span className="text-sm">Annuler</span>
-                    </button>
+                    <p className="mt-2 text-sm text-gray-700">
+                      Êtes-vous sûr de vouloir supprimer{" "}
+                      <strong>
+                        {deleteUser.firstname} {deleteUser.lastname}
+                      </strong>
+                    </p>
 
-                    <button
-                      className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700"
-                      onClick={handleDeleteUser}
-                    >
-                      <span className="text-sm">Valider</span>
-                    </button>
+                    <div className="mt-4 flex gap-2">
+                      <button
+                        className="block rounded-lg px-4 py-2 text-gray-700 transition hover:bg-gray-50"
+                        onClick={() => setDeleteUser(null)}
+                      >
+                        <span className="text-sm">Annuler</span>
+                      </button>
+
+                      <button
+                        className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700"
+                        onClick={handleDeleteUser}
+                      >
+                        <span className="text-sm">Valider</span>
+                      </button>
+                    </div>
                   </div>
-                </div>
 
-                <button
-                  className="text-gray-500 transition hover:text-gray-600"
-                  onClick={() => setDeleteUser(null)}
-                >
-                  <span className="sr-only">Dismiss popup</span>
-
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth="1.5"
-                    stroke="currentColor"
-                    className="h-6 w-6"
+                  <button
+                    className="text-gray-500 transition hover:text-gray-600"
+                    onClick={() => setDeleteUser(null)}
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
-                </button>
+                    <span className="sr-only">Dismiss popup</span>
+
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      strokeWidth="1.5"
+                      stroke="currentColor"
+                      className="h-6 w-6"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
+            <div className="fixed inset-0 z-40 bg-black bg-opacity-50"></div>
+          </>
         )}
       </div>
     </div>
