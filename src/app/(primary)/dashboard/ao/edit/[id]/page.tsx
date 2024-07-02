@@ -22,7 +22,7 @@ export default function EditAo({ params }: { params: { id: string } }) {
     <div className="mx-auto flex min-h-screen max-w-screen-2xl flex-col px-4 pb-16">
       <div className="flex-grow">
         <main className="my-0">
-          <div className="relative mt-6 rounded-lg bg-white p-6 shadow-lg lg:col-span-3 lg:p-12">
+          <div className="relative mt-2 rounded-lg bg-white p-6 shadow-lg lg:col-span-3 lg:p-12">
             <h1 className="text-center text-xl font-medium uppercase text-black sm:text-2xl">
               Modification Appel d&apos;Offre
             </h1>

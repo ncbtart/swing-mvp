@@ -19,7 +19,7 @@ export default function MainLayout({
       <SessionProvider>
         <PannierProvider>
           <PopupProvider>
-            <div className="flex min-h-screen bg-gray-50">
+            <div className="flex min-h-screen">
               <SideMenu />
               <div className="flex-grow">
                 <Header />

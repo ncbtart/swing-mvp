@@ -6,6 +6,8 @@ import {
 } from "next-auth";
 import { type Adapter } from "next-auth/adapters";
 
+import GoogleProvider from "next-auth/providers/google";
+
 import { db } from "@/server/db";
 
 import CredentialsProvider from "next-auth/providers/credentials";
@@ -23,6 +25,7 @@ declare module "next-auth" {
     user: {
       id: string;
       role: Role;
+      accessToken?: string;
     } & DefaultSession["user"];
   }
 
@@ -36,6 +39,7 @@ declare module "next-auth/jwt" {
   interface JWT {
     role: Role;
     id: string;
+    accessToken?: string; // Ajouter l'access token de Google
   }
 }
 
@@ -46,7 +50,38 @@ declare module "next-auth/jwt" {
  */
 export const authOptions: NextAuthOptions = {
   callbacks: {
-    jwt({ token, user }) {
+    async jwt({ token, user, account, profile }) {
+      console.log("jwt callback - user:", user);
+      console.log("jwt callback - account:", account);
+
+      if (account && account.provider === "google") {
+        token.accessToken = account.access_token;
+
+        console.log("account", account);
+
+        console.log("profile", profile);
+        // Vérifier si l'utilisateur existe dans la base de données
+        const dbUser = await db.user.findUnique({
+          where: {
+            email: profile?.email,
+          },
+          include: {
+            role: true,
+          },
+        });
+
+        console.log("dbUser", dbUser);
+
+        if (!dbUser) {
+          throw new Error("User not found");
+        }
+
+        token.role = dbUser.role;
+        token.id = dbUser.id;
+
+        return token;
+      }
+
       if (user) {
         token.role = user.role;
         token.id = user.id;
@@ -54,9 +89,17 @@ export const authOptions: NextAuthOptions = {
       return token;
     },
     session({ session, token }) {
+      console.log("session callback - session:", session);
+      console.log("session callback - token:", token);
+
       session.user.role = token.role;
       session.user.id = token.id;
+      session.user.accessToken = token.accessToken;
+
       return session;
+    },
+    redirect({ baseUrl }) {
+      return baseUrl;
     },
   },
   pages: {
@@ -101,6 +144,17 @@ export const authOptions: NextAuthOptions = {
         }
 
         return null;
+      },
+    }),
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID ?? "",
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? "",
+      allowDangerousEmailAccountLinking: true,
+      authorization: {
+        params: {
+          scope:
+            "https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email",
+        },
       },
     }),
     /**

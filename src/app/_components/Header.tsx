@@ -1,6 +1,11 @@
 "use client";
 
+import { useAtom } from "jotai";
+import { menuOpenAtom } from "@/app/_hooks/jotai/menuOpen";
+
 export default function Header() {
+  const [menuOpen, setMenuOpen] = useAtom(menuOpenAtom);
+
   return (
     <header className="-ml-10">
       <div className="mx-auto flex h-16 max-w-screen-xl items-center gap-8 px-4 sm:px-6 lg:px-8">
@@ -8,7 +13,10 @@ export default function Header() {
           <nav aria-label="Global" className="hidden md:block"></nav>
 
           <div className="flex items-center gap-4">
-            <button className="block rounded bg-gray-100 p-2.5 text-gray-600 transition hover:text-gray-600/75 md:hidden">
+            <button
+              className="block rounded bg-gray-100 p-2.5 text-gray-600 transition hover:text-gray-600/75 md:hidden"
+              onClick={() => setMenuOpen(!menuOpen)}
+            >
               <span className="sr-only">Toggle menu</span>
               <svg
                 xmlns="http://www.w3.org/2000/svg"

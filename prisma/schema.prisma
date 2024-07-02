@@ -40,10 +40,10 @@ model Etablissement {
 }
 
 enum Surgery {
-    HIL
     HIC
-    HOL
+    HIL
     HOC
+    HOL
     EIPL
     EIPC
     ERM
@@ -57,13 +57,14 @@ enum Fabricant {
 }
 
 model Product {
-    id            String          @id @default(cuid())
-    reference     String          @unique
-    fabricant     Fabricant
-    surgery       Surgery[]
-    models        Model[]
-    ReferenceChir ReferenceChir[]
-    ProductLot    ProductLot[]
+    id                String              @id @default(cuid())
+    reference         String              @unique
+    fabricant         Fabricant
+    surgery           Surgery[]
+    models            Model[]
+    ReferenceChir     ReferenceChir[]
+    ProductLot        ProductLot[]
+    ProductAvancement ProductAvancement[]
 }
 
 enum Civilite {
@@ -128,14 +129,31 @@ model ReferenceChir {
     surgery      Surgery
 }
 
-model UsingSurgery {
+model ProductAvancement {
     id           String     @id @default(cuid())
+    product      Product    @relation(fields: [productId], references: [id])
+    productId    String
+    avancementId String
+    avancement   Avancement @relation(fields: [avancementId], references: [id])
+}
+
+model Avancement {
+    id           String              @id @default(cuid())
+    avancement   Int
+    products     ProductAvancement[]
+    UsingSurgery UsingSurgery[]
+}
+
+model UsingSurgery {
+    id           String      @id @default(cuid())
     surgery      Surgery
-    chirurgien   Chirurgien @relation(fields: [chirurgienId], references: [id], onDelete: Cascade)
+    chirurgien   Chirurgien  @relation(fields: [chirurgienId], references: [id], onDelete: Cascade)
+    avancement   Avancement? @relation(fields: [avancementId], references: [id])
+    avancementId String?
     chirurgienId String
-    isUsing      Boolean    @default(true)
-    isTapp       Boolean    @default(false)
-    isTep        Boolean    @default(false)
+    isUsing      Boolean     @default(true)
+    isTapp       Boolean     @default(false)
+    isTep        Boolean     @default(false)
 }
 
 model Model {
@@ -311,8 +329,12 @@ enum RendezVousType {
     RDV_STAFF_CHIR
     RDV_VALIDATION
     RDV_FORMATION
-    ESSAI1
-    ESSAI2
+    ESSAI
+}
+
+enum Pose {
+    MONO
+    BILLATERAL
 }
 
 model ModelEssaiRendezVous {
@@ -323,6 +345,11 @@ model ModelEssaiRendezVous {
     rendezVousId String
     surgery      Surgery
     done         Boolean    @default(false)
+    validation   Boolean    @default(false)
+    observation  String?
+    pose         Pose?
+    schedule     Boolean    @default(false)
+    filePath     String?
 }
 
 model RendezVous {
@@ -333,23 +360,27 @@ model RendezVous {
     type                 RendezVousType
     commercial           User                   @relation(fields: [commercialId], references: [id])
     commercialId         String
+    googleEventId        String? // Ajouter ce champ pour stocker l'ID de l'événement Google
     ModelEssaiRendezVous ModelEssaiRendezVous[]
+    nextRendezVous       RendezVous[]           @relation("NextRendezVous")
+    prevRendezVous       RendezVous?            @relation("NextRendezVous", fields: [prevRendezVousId], references: [id])
+    prevRendezVousId     String?
 }
 
 model User {
-    id            String    @id @default(cuid())
-    firstname     String?
-    lastname      String?
-    username      String?   @unique
-    password      String?
-    email         String?   @unique
-    emailVerified DateTime?
-    phone         String?
-    image         String?
-    roleId        String
-    accounts      Account[]
-    sessions      Session[]
-    role          Role      @relation(fields: [roleId], references: [id])
+    id               String    @id @default(cuid())
+    firstname        String?
+    lastname         String?
+    username         String?   @unique
+    password         String?
+    email            String?   @unique
+    phone            String?
+    image            String?
+    roleId           String
+    accounts         Account[]
+    sessions         Session[]
+    role             Role      @relation(fields: [roleId], references: [id])
+    googleCalendarId String? // Ajouter ce champ pour stocker l'ID du calendrier dédié
 
     SecteurUser SecteurUser[]
     Source      Source[]

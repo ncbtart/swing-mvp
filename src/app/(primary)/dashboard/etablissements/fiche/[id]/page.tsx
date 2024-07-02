@@ -7,6 +7,7 @@ import {
   CiviliteLabels,
   FonctionChirs,
   FonctionLabels,
+  PoseLabels,
   RendezVousTypeLabels,
   ServiceLabels,
   TypeMarcheLabels,
@@ -19,16 +20,17 @@ import {
   Jour,
   Service,
   RoleName,
+  RendezVousType,
+  Surgery,
 } from "@prisma/client";
 import Image from "next/image";
 import Link from "next/link";
 
-import { useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import { isFrenchPhoneNumber } from "src/utils";
 import { format } from "date-fns";
 import { useSessionContext } from "@/app/_hooks/useSession";
 import { useRouter, useSearchParams } from "next/navigation";
-import GenericTable from "@/app/_components/core/GenericTable";
 
 interface Etablissement {
   departement:
@@ -133,7 +135,7 @@ export default function FicheEtablissement({
               <span className="sr-only">Loading...</span>
             </div>
           ) : (
-            <div className="relative mt-6 rounded-lg bg-white p-6 shadow-lg lg:col-span-3 lg:p-12">
+            <div className="relative mt-2 rounded-lg bg-white p-6 shadow-lg lg:col-span-3 lg:p-12">
               <Image
                 src="/img/logo.gif"
                 alt="Swing"
@@ -142,31 +144,29 @@ export default function FicheEtablissement({
                 className="absolute left-6 top-6"
               />
 
-              <h1 className="mb-12 text-center text-xl font-medium uppercase  text-black sm:text-2xl">
-                Fiche etablissement
-              </h1>
+              <div className="mb-12 text-center text-xl font-medium uppercase  text-black sm:text-2xl">
+                <p>
+                  <span className="my-8 text-xl font-bold text-blue-900">
+                    {etablissement?.name} - {etablissement?.codePostal}{" "}
+                    {etablissement?.ville}
+                  </span>
+                </p>
 
-              <p>
-                <span className="my-8 text-xl font-bold text-blue-900">
-                  {etablissement?.name} - {etablissement?.codePostal}{" "}
-                  {etablissement?.ville}
-                </span>
-              </p>
-
-              <p className="my-2 text-base">
-                Secteur :{" "}
-                <span className="text-blue-900">
-                  {etablissement?.departement?.secteur?.name}
-                </span>
-                <span className="ml-20 text-gray-700 sm:col-span-2">
-                  Commercial :{" "}
-                  {commerciaux?.map((commercial) => (
-                    <span key={commercial.id} className="text-blue-900">
-                      {commercial.firstname} {commercial.lastname}
-                    </span>
-                  ))}
-                </span>
-              </p>
+                <p className="my-2 text-base">
+                  Secteur :{" "}
+                  <span className="text-blue-900">
+                    {etablissement?.departement?.secteur?.name}
+                  </span>
+                  <span className="ml-20 text-gray-700 sm:col-span-2">
+                    Commercial :{" "}
+                    {commerciaux?.map((commercial) => (
+                      <span key={commercial.id} className="text-blue-900">
+                        {commercial.firstname} {commercial.lastname}
+                      </span>
+                    ))}
+                  </span>
+                </p>
+              </div>
 
               <div>
                 <div className="sm:hidden">
@@ -203,9 +203,16 @@ export default function FicheEtablissement({
 
                       <TabButton
                         activeIndex={tabIndex}
-                        label="Historique"
+                        label="Historique des rendez-vous"
                         setTabIndex={setTabIndex}
                         tabIndex={3}
+                      />
+
+                      <TabButton
+                        activeIndex={tabIndex}
+                        label="Tableau Avancement"
+                        setTabIndex={setTabIndex}
+                        tabIndex={4}
                       />
                     </nav>
                   </div>
@@ -230,6 +237,7 @@ export default function FicheEtablissement({
                     1: <Services etablissement={etablissement!} />,
                     2: <AO etablissement={etablissement!} />,
                     3: <Historique etablissement={etablissement!} />,
+                    4: <TabAvancement etablissement={etablissement!} />,
                   }[tabIndex]
                 }
               </div>
@@ -799,56 +807,112 @@ function Services({ etablissement }: { etablissement: Etablissement }) {
           Ajouter un contact
         </div>
       </div>
-      <div>
-        {sortedKeys.map((service) => (
-          <div key={service} className="mb-6 overflow-x-auto rounded-lg border">
-            <table className="min-w-full divide-y-2 divide-gray-200 bg-white text-sm">
-              <thead className="text-left">
-                <tr>
-                  <th className="w-1/6 whitespace-nowrap bg-indigo-50 px-4 py-3 font-medium text-gray-900">
-                    {ServiceLabels[service as keyof typeof ServiceLabels]}
-                  </th>
-                  <th className="w-12 whitespace-nowrap bg-indigo-50 px-4  py-3 font-medium text-gray-900">
-                    Civ.
-                  </th>
-                  <th className="w-1/4 whitespace-nowrap bg-indigo-50 px-4 py-3 font-medium text-gray-900">
-                    Nom
-                  </th>
-                  <th className="w-1/6 whitespace-nowrap bg-indigo-50 px-4  py-3 font-medium text-gray-900">
-                    Tél Sec.
-                  </th>
-                  <th className="w-1/6 whitespace-nowrap bg-indigo-50 px-4 py-3 font-medium text-gray-900">
-                    Tél Perso
-                  </th>
-                  <th className="w-1/4 whitespace-nowrap bg-indigo-50 px-4  py-3 font-medium text-gray-900">
-                    Email
-                  </th>
-                  <th className="w-1/12 whitespace-nowrap bg-indigo-50 px-4  py-3 font-medium text-gray-900"></th>
-                </tr>
-              </thead>
+      {chirurgiens && chirurgiens.length > 0 ? (
+        <div>
+          {sortedKeys.map((service) => (
+            <div key={service}>
+              <h4 className="mb-3 rounded-lg bg-blue-50 p-4 font-bold text-blue-900">
+                {ServiceLabels[service as keyof typeof ServiceLabels]}
+              </h4>
 
-              <tbody className="divide-y divide-gray-200">
-                {chirByService[service]?.map((chir) => (
-                  <tr key={chir.id}>
-                    <td className="whitespace-nowrap px-4 py-2 text-gray-900">
-                      {FonctionLabels[chir.fonction]}
-                    </td>
-                    <td className="whitespace-nowrap px-4 py-2 text-gray-900">
-                      {CiviliteLabels[chir.civilite]}
-                    </td>
-                    <td className="whitespace-nowrap px-4 py-2 font-bold text-gray-900">
-                      {chir.firstname} {chir.lastname}
-                    </td>
-                    <td className="whitespace-nowrap px-4 py-2 text-gray-900">
-                      {formatNumeroTelephone(chir.phone)}
-                    </td>
-                    <td className="whitespace-nowrap px-4 py-2 text-gray-900">
-                      {formatNumeroTelephone(chir.phone2 ?? "")}
-                    </td>
-                    <td className="whitespace-nowrap px-4 py-2 text-gray-900">
-                      {chir.email}
-                    </td>
-                    <td className="whitespace-nowrap px-4 py-2 text-gray-900">
+              {chirByService[service]?.map((chir) => (
+                <article
+                  key={chir.id}
+                  className="mb-6 rounded-xl bg-white p-2 ring ring-indigo-50 sm:p-4 lg:p-6"
+                >
+                  <div className="flex items-center justify-between sm:gap-8">
+                    <div>
+                      <h3 className="mt-4 font-bold">
+                        <span className="flex flex-row items-center space-x-4">
+                          <Link
+                            href={`/dashboard/contact/fiche/${chir.id}`}
+                            className="hover:underline"
+                          >
+                            {CiviliteLabels[chir.civilite]} {chir.lastname}{" "}
+                            {chir.firstname}
+                          </Link>
+                          <p className="mt-1 text-xs text-gray-400">
+                            {chir.fonction} - {ServiceLabels[chir.service]}
+                          </p>
+                        </span>
+                      </h3>
+
+                      <div className="mt-4 sm:flex sm:items-center sm:gap-2">
+                        <div className="flex items-center gap-1 text-gray-500">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                            fill="currentColor"
+                            className="h-4 w-4"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M1.5 4.5a3 3 0 0 1 3-3h1.372c.86 0 1.61.586 1.819 1.42l1.105 4.423a1.875 1.875 0 0 1-.694 1.955l-1.293.97c-.135.101-.164.249-.126.352a11.285 11.285 0 0 0 6.697 6.697c.103.038.25.009.352-.126l.97-1.293a1.875 1.875 0 0 1 1.955-.694l4.423 1.105c.834.209 1.42.959 1.42 1.82V19.5a3 3 0 0 1-3 3h-2.25C8.552 22.5 1.5 15.448 1.5 6.75V4.5Z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+
+                          <p className="text-xs font-medium">
+                            {formatNumeroTelephone(chir.phone)}
+                          </p>
+
+                          {chir?.phone2 && (
+                            <>
+                              <span
+                                className="mx-4 hidden sm:block"
+                                aria-hidden="true"
+                              >
+                                &middot;
+                              </span>
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 24 24"
+                                fill="currentColor"
+                                className="h-4 w-4"
+                              >
+                                <path
+                                  fillRule="evenodd"
+                                  d="M1.5 4.5a3 3 0 0 1 3-3h1.372c.86 0 1.61.586 1.819 1.42l1.105 4.423a1.875 1.875 0 0 1-.694 1.955l-1.293.97c-.135.101-.164.249-.126.352a11.285 11.285 0 0 0 6.697 6.697c.103.038.25.009.352-.126l.97-1.293a1.875 1.875 0 0 1 1.955-.694l4.423 1.105c.834.209 1.42.959 1.42 1.82V19.5a3 3 0 0 1-3 3h-2.25C8.552 22.5 1.5 15.448 1.5 6.75V4.5Z"
+                                  clipRule="evenodd"
+                                />
+                              </svg>
+
+                              <p className="text-xs font-medium">
+                                {formatNumeroTelephone(chir.phone2)}
+                              </p>
+                            </>
+                          )}
+
+                          {chir?.email && (
+                            <>
+                              <span
+                                className="mx-4 hidden sm:block"
+                                aria-hidden="true"
+                              >
+                                &middot;
+                              </span>
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 24 24"
+                                fill="currentColor"
+                                className="h-4 w-4"
+                              >
+                                <path
+                                  fillRule="evenodd"
+                                  d="M17.834 6.166a8.25 8.25 0 1 0 0 11.668.75.75 0 0 1 1.06 1.06c-3.807 3.808-9.98 3.808-13.788 0-3.808-3.807-3.808-9.98 0-13.788 3.807-3.808 9.98-3.808 13.788 0A9.722 9.722 0 0 1 21.75 12c0 .975-.296 1.887-.809 2.571-.514.685-1.28 1.179-2.191 1.179-.904 0-1.666-.487-2.18-1.164a5.25 5.25 0 1 1-.82-6.26V8.25a.75.75 0 0 1 1.5 0V12c0 .682.208 1.27.509 1.671.3.401.659.579.991.579.332 0 .69-.178.991-.579.3-.4.509-.99.509-1.671a8.222 8.222 0 0 0-2.416-5.834ZM15.75 12a3.75 3.75 0 1 0-7.5 0 3.75 3.75 0 0 0 7.5 0Z"
+                                  clipRule="evenodd"
+                                />
+                              </svg>
+
+                              <p className="text-xs font-medium">
+                                {chir.email}
+                              </p>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    <div>
                       <div className="text-center">
                         <span className="inline-flex overflow-hidden rounded-md border bg-white shadow-sm">
                           <Link
@@ -894,14 +958,23 @@ function Services({ etablissement }: { etablissement: Etablissement }) {
                           </button>
                         </span>
                       </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ))}
-      </div>
+                    </div>
+                  </div>
+                </article>
+              ))}
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="flex h-96 flex-col items-center justify-center">
+          <Image
+            src="/img/no_contact.svg"
+            alt="No data"
+            width={300}
+            height={300}
+          />
+        </div>
+      )}
       {addChirMode && (
         <>
           <NewPersonnelForm
@@ -1461,71 +1534,470 @@ function AO({ etablissement }: { etablissement: Etablissement }) {
 }
 
 function Historique({ etablissement }: { etablissement: Etablissement }) {
-  const { data: historiques } = api.activite.finAllByChirurgien.useQuery({
+  const [chirId, setChirId] = useState<string | undefined>();
+
+  const { data: chirurgiens } = api.chirurgien.findAll.useQuery({
     etablissementId: etablissement.id,
-    status: true,
   });
+
+  const { data: historiques, isPending } =
+    api.activite.finAllByChirurgien.useQuery({
+      etablissementId: etablissement.id,
+      chirurgienId: chirId,
+      status: true,
+      order: "desc",
+    });
 
   return (
     <div className="mt-12">
       <div className="mx-auto w-3/4">
-        {historiques?.data.map((historique) => (
-          <article
-            key={historique.id}
-            className="mb-6 rounded-xl bg-white p-4 ring ring-indigo-50 sm:p-6 lg:p-8"
-          >
-            <div className="flex items-start sm:gap-8">
-              <div>
-                <strong className="rounded border border-blue-500 bg-blue-500 px-3 py-1.5 text-[10px] font-medium text-white">
-                  {RendezVousTypeLabels[historique.rendezVous.type]}
-                </strong>
-
-                <h3 className="mt-4 font-bold">
-                  <Link
-                    href={`/dashboard/contact/fiche/${historique.chirurgien.id}`}
-                    className="hover:underline"
-                  >
-                    {" "}
-                    {CiviliteLabels[historique.chirurgien.civilite]}{" "}
-                    {historique.chirurgien.lastname}{" "}
-                    {historique.chirurgien.firstname}{" "}
-                  </Link>
-                  <p className="mt-1 text-xs text-gray-400">
-                    {historique.chirurgien.fonction} -{" "}
-                    {ServiceLabels[historique.chirurgien.service]}
-                  </p>
-                </h3>
-
-                <p className="mt-1 text-sm">{historique.observation}</p>
-
-                <div className="mt-4 sm:flex sm:items-center sm:gap-2">
-                  <div className="flex items-center gap-1 text-gray-500">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 24 24"
-                      fill="currentColor"
-                      className="size-6"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M6.75 2.25A.75.75 0 0 1 7.5 3v1.5h9V3A.75.75 0 0 1 18 3v1.5h.75a3 3 0 0 1 3 3v11.25a3 3 0 0 1-3 3H5.25a3 3 0 0 1-3-3V7.5a3 3 0 0 1 3-3H6V3a.75.75 0 0 1 .75-.75Zm13.5 9a1.5 1.5 0 0 0-1.5-1.5H5.25a1.5 1.5 0 0 0-1.5 1.5v7.5a1.5 1.5 0 0 0 1.5 1.5h13.5a1.5 1.5 0 0 0 1.5-1.5v-7.5Z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-
-                    <p className="text-xs font-medium">
-                      {format(historique.rendezVous.date, "dd/MM/yyyy")}
-                    </p>
-                  </div>
-
-                  <span className="hidden sm:block" aria-hidden="true">
-                    &middot;
-                  </span>
-                </div>
-              </div>
+        {isPending ? (
+          <div className="flex h-96 items-center justify-center">
+            <svg
+              aria-hidden="true"
+              className="h-8 w-8 animate-spin fill-blue-600 text-gray-200 dark:text-gray-600"
+              viewBox="0 0 100 101"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
+                fill="currentColor"
+              />
+              <path
+                d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
+                fill="currentFill"
+              />
+            </svg>
+            <span className="sr-only">Loading...</span>
+          </div>
+        ) : (
+          <>
+            <div className="my-4 flex items-center justify-end space-x-4">
+              {chirurgiens && chirurgiens.length > 0 && (
+                <select
+                  className="w-48 rounded-md p-2 shadow-sm dark:border-gray-700"
+                  onChange={(e) => setChirId(e.target.value)}
+                >
+                  <option value="">Contact</option>
+                  {chirurgiens?.map((chirurgien) => (
+                    <option key={chirurgien.id} value={chirurgien.id}>
+                      {CiviliteLabels[chirurgien.civilite]}{" "}
+                      {chirurgien.lastname} {chirurgien.firstname}
+                    </option>
+                  ))}
+                </select>
+              )}
             </div>
-          </article>
-        ))}
+            {historiques && historiques?.total > 0 ? (
+              <>
+                {historiques?.data.map((historique, index) => (
+                  <article
+                    key={`${historique.id}_${index}`}
+                    className="mb-6 rounded-xl bg-white p-4 ring ring-indigo-50 sm:p-6 lg:p-8"
+                  >
+                    <div className="flex items-start sm:gap-8">
+                      <div className="w-full ">
+                        <div className="flex flex-row space-x-4">
+                          <strong
+                            className="rounded border border-blue-500 bg-blue-500 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wide text-white
+"
+                          >
+                            {RendezVousTypeLabels[historique.rendezVous.type]}
+                          </strong>
+                          <div className="flex items-center gap-1 text-gray-500">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              viewBox="0 0 24 24"
+                              fill="currentColor"
+                              className="size-6"
+                            >
+                              <path
+                                fillRule="evenodd"
+                                d="M6.75 2.25A.75.75 0 0 1 7.5 3v1.5h9V3A.75.75 0 0 1 18 3v1.5h.75a3 3 0 0 1 3 3v11.25a3 3 0 0 1-3 3H5.25a3 3 0 0 1-3-3V7.5a3 3 0 0 1 3-3H6V3a.75.75 0 0 1 .75-.75Zm13.5 9a1.5 1.5 0 0 0-1.5-1.5H5.25a1.5 1.5 0 0 0-1.5 1.5v7.5a1.5 1.5 0 0 0 1.5 1.5h13.5a1.5 1.5 0 0 0 1.5-1.5v-7.5Z"
+                                clipRule="evenodd"
+                              />
+                            </svg>
+
+                            <p className="text-sm font-medium">
+                              {format(historique.rendezVous.date, "dd/MM/yyyy")}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="mt-4 grid grid-cols-3 gap-28">
+                          <h3 className="font-bold">
+                            <Link
+                              href={`/dashboard/contact/fiche/${historique.chirurgien.id}`}
+                              className="hover:underline"
+                            >
+                              {CiviliteLabels[historique.chirurgien.civilite]}{" "}
+                              {historique.chirurgien.lastname}{" "}
+                              {historique.chirurgien.firstname}{" "}
+                            </Link>
+                            <p className="mt-1 text-xs text-gray-400">
+                              {historique.chirurgien.fonction} -{" "}
+                              {ServiceLabels[historique.chirurgien.service]}
+                            </p>
+                          </h3>
+
+                          <div className="col-span-2 mb-4">
+                            {historique.rendezVous.type ===
+                            RendezVousType.ESSAI ? (
+                              <>
+                                {historique.rendezVous.ModelEssaiRendezVous.map(
+                                  (model, index) => (
+                                    <div
+                                      key={`${model.id}_${index}`}
+                                      className={`flex flex-col rounded-lg border border-blue-200 p-4 text-sm ${index > 0 && "mt-2"}`}
+                                    >
+                                      <div className="mb-4 space-x-4">
+                                        <span className="whitespace-nowrap rounded-full bg-blue-100 px-2.5 py-0.5 text-sm text-blue-700">
+                                          {model.done ? "Posé" : "Non posé"}
+                                        </span>
+
+                                        {model.done && (
+                                          <span className="whitespace-nowrap rounded-full bg-blue-100 px-2.5 py-0.5 text-sm text-blue-700">
+                                            {model.validation
+                                              ? "Validé"
+                                              : "Non validé"}
+                                          </span>
+                                        )}
+                                      </div>
+                                      <p>
+                                        <span className="font-bold">
+                                          {model.model.name}
+                                          {!!model.pose && (
+                                            <span className="ml-2 text-xs uppercase text-gray-400">
+                                              {PoseLabels[model.pose]}
+                                            </span>
+                                          )}{" "}
+                                          :{" "}
+                                        </span>
+
+                                        <span className="ml-2">
+                                          {model.observation ??
+                                            "Aucune observation"}
+                                        </span>
+                                      </p>
+
+                                      {model.schedule && (
+                                        <p className="mt-2 text-sm font-medium text-red-600">
+                                          Date à programmer !
+                                        </p>
+                                      )}
+                                    </div>
+                                  ),
+                                )}
+                              </>
+                            ) : (
+                              <p className="rounded-lg border border-blue-200 p-4 text-sm">
+                                {historique.observation}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="mt-4 sm:flex sm:items-center sm:gap-2">
+                          {historique.rendezVous.nextRendezVous.length > 0 ? (
+                            <>
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                strokeWidth={1.5}
+                                stroke="currentColor"
+                                className="size-6"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+                                />
+                              </svg>
+
+                              {historique.rendezVous.nextRendezVous.map(
+                                (rdv, index) => (
+                                  <Fragment key={rdv.id}>
+                                    <span className="whitespace-nowrap rounded-full bg-green-100 px-2.5 py-0.5 text-sm text-green-700">
+                                      {RendezVousTypeLabels[rdv.type]}
+                                    </span>
+
+                                    <p className="text-xs font-medium">
+                                      {format(rdv.date, "dd/MM/yyyy")}
+                                    </p>
+
+                                    {rdv.type === RendezVousType.ESSAI && (
+                                      <p className="text-sm font-bold">
+                                        {rdv?.ModelEssaiRendezVous?.map(
+                                          (model, index) => (
+                                            <span
+                                              key={index}
+                                              className={`text-sm font-medium ${index === 0 && "ml-2"}`}
+                                            >
+                                              {model.model.name}
+                                              {!!model.pose && (
+                                                <span className="ml-2 text-xs text-gray-400">
+                                                  {model.pose}
+                                                </span>
+                                              )}{" "}
+                                              {index <
+                                                (rdv?.ModelEssaiRendezVous
+                                                  ?.length ?? 0) -
+                                                  1 && (
+                                                <span className="text-sm font-medium">
+                                                  ,{" "}
+                                                </span>
+                                              )}
+                                            </span>
+                                          ),
+                                        )}
+                                      </p>
+                                    )}
+
+                                    {index <
+                                      historique.rendezVous.nextRendezVous
+                                        .length -
+                                        1 && (
+                                      <span
+                                        className="hidden sm:block"
+                                        aria-hidden="true"
+                                      >
+                                        <svg
+                                          xmlns="http://www.w3.org/2000/svg"
+                                          fill="none"
+                                          viewBox="0 0 24 24"
+                                          strokeWidth={1.5}
+                                          stroke="currentColor"
+                                          className="size-2"
+                                        >
+                                          <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            d="m8.25 4.5 7.5 7.5-7.5 7.5"
+                                          />
+                                        </svg>
+                                      </span>
+                                    )}
+                                  </Fragment>
+                                ),
+                              )}
+                            </>
+                          ) : (
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              strokeWidth={1.5}
+                              stroke="currentColor"
+                              className="size-6"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+                              />
+                            </svg>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </article>
+                ))}
+              </>
+            ) : (
+              <>
+                <div className="flex h-96 flex-col items-center justify-center">
+                  <p className="mb-12 text-sm text-gray-500 ">
+                    Aucun historique pour le moment
+                  </p>
+                  <Image
+                    src="/img/to_do.svg"
+                    alt="No data"
+                    width={450}
+                    height={450}
+                  />
+                </div>
+              </>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function TabAvancement({ etablissement }: { etablissement: Etablissement }) {
+  const { data: avancements } = api.etablissement.avancement.useQuery({
+    id: etablissement.id,
+  });
+
+  const sortedChir = useMemo(() => {
+    if (!avancements) return [];
+
+    return avancements.sort((a, b) => {
+      if (a.chirurgien.service < b.chirurgien.service) return -1;
+      if (a.chirurgien.service > b.chirurgien.service) return 1;
+      return 0;
+    });
+  }, [avancements]);
+
+  console.log(sortedChir);
+
+  function getColourAvancement(avancementChir: number) {
+    switch (avancementChir) {
+      case 0:
+        return "";
+      case 1:
+        return "";
+      case 2:
+        return "bg-green-200";
+      case 3:
+        return "bg-green-400";
+      case 4:
+        return "bg-green-600";
+      default:
+        return "";
+    }
+  }
+
+  return (
+    <div className="mt-12">
+      <div className="mx-auto">
+        <div>
+          <div>
+            <table className="w-full table-auto border-collapse divide-gray-200  text-sm">
+              <tbody>
+                <tr>
+                  <td className="border border-gray-400 bg-green-600 px-4 py-2">
+                    Chirurgien utilisateur
+                  </td>
+                  <td className="border border-gray-400 bg-green-400 px-4 py-2">
+                    Chirurgien vu essai réalisé
+                  </td>
+                  <td className="border border-gray-400 bg-green-200 px-4 py-2">
+                    Chirurgien vu essai non réalisé
+                  </td>
+                  <td className="border border-gray-400 px-4 py-2">
+                    Chirurgien non rencontré
+                  </td>
+                </tr>
+                <tr>
+                  <td className="border border-gray-400 bg-green-600 px-4 py-2">
+                    Réf validée et utilisée
+                  </td>
+                  <td className="border border-gray-400 bg-green-400 px-4 py-2">
+                    Réf validée fiche d&apos;essai jointe
+                  </td>
+                  <td className="border border-gray-400 bg-green-200 px-4 py-2">
+                    Réf essai programmé
+                  </td>
+                  <td className="border border-gray-400 px-4 py-2">
+                    N/A Technique non pratiquée
+                  </td>
+                  <td className="border border-gray-400 px-4 py-2">
+                    NCP Ne Change Pas
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div className="my-6 overflow-x-auto rounded-lg border">
+            <table className="min-w-full divide-y-2 divide-gray-200 bg-white text-sm">
+              <thead className="text-left">
+                <tr>
+                  <th className="w-1/12 bg-gray-50 px-8 py-3">Spécialité</th>
+                  <th className="w-1/12 bg-gray-50 px-8 py-3">Chirurgien</th>
+                  {Object.values(Surgery).map((s) => {
+                    return (
+                      <th key={s} className="w-1/12 bg-gray-50 px-8 py-3">
+                        {s}
+                      </th>
+                    );
+                  })}
+                </tr>
+              </thead>
+
+              <tbody className="divide-y divide-gray-200">
+                {sortedChir.map((chir) => (
+                  <tr key={chir.chirurgien.id}>
+                    <td className="border border-gray-100 bg-gray-50 px-6 py-4">
+                      <p className="text-sm font-medium text-gray-900">
+                        {ServiceLabels[chir.chirurgien.service]}
+                      </p>
+                    </td>
+                    <td
+                      className={`border border-gray-100 px-6 py-4 ${getColourAvancement(chir.avancementChir)}`}
+                    >
+                      <Link
+                        className="text-xs text-gray-900 hover:underline"
+                        href={`/dashboard/contact/fiche/${chir.chirurgien.id}`}
+                      >
+                        {CiviliteLabels[chir.chirurgien.civilite]}{" "}
+                        {chir.chirurgien.lastname} {chir.chirurgien.firstname}
+                      </Link>
+                    </td>
+
+                    {Object.values(Surgery).map((s) => {
+                      const avancement = chir.surgeries.find(
+                        (a) => a.surgery === s,
+                      );
+
+                      let color = "bg-gray-100";
+                      let text;
+
+                      if (!avancement) {
+                        return (
+                          <td
+                            key={s}
+                            className={`border border-gray-100 px-6 py-4 ${color}`}
+                          ></td>
+                        );
+                      }
+
+                      text = avancement.products
+                        .map((p) => p.reference)
+                        .join(", ");
+
+                      switch (avancement.avancement) {
+                        case 0:
+                          text = "N/A";
+                          color = "";
+                          break;
+                        case 1:
+                          color = "";
+                          break;
+                        case 2:
+                          color = "bg-green-200";
+                          break;
+                        case 3:
+                          color = "bg-green-400";
+                          break;
+                        case 4:
+                          color = "bg-green-600";
+                          break;
+
+                        default:
+                          break;
+                      }
+
+                      return (
+                        <td
+                          key={s}
+                          className={`border border-gray-100 px-3 py-2 ${color}`}
+                        >
+                          <p className="text-center text-xs text-gray-900">
+                            {text}
+                          </p>
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
     </div>
   );

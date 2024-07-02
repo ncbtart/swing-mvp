@@ -2,6 +2,8 @@ import bcrypt from "bcrypt";
 
 import type { PrismaClient } from "@prisma/client";
 
+import Commerciaux from "../assets/commerciaux.json";
+
 interface Role {
   id: string;
   name: string;
@@ -13,45 +15,51 @@ async function seedUsers(
   chefRole: Role,
   commercialRole: Role,
 ) {
-  const adminPassword = await bcrypt.hash("admin1234", 10);
+  for (const commercial of Commerciaux) {
+    const { firstname, lastname, secteur } = commercial;
 
-  const adminUser = await client.user.create({
-    data: {
-      firstname: "Admin",
-      lastname: "Admin",
-      username: "admin",
-      password: adminPassword, // Utilisez un mot de passe sécurisé et hashé dans la pratique
-      roleId: adminRole.id,
-    },
-  });
+    const email = `${firstname.toLowerCase()}.${lastname.toLowerCase()}@localhost`;
+    const hashedPassword = await bcrypt.hash(`azertyuiop1234`, 10);
 
-  const user1Password = await bcrypt.hash("john1234", 10);
+    const secteurs = await client.secteur.findMany({
+      where: {
+        name: {
+          in: secteur.map((s) => s.name),
+        },
+      },
+    });
 
-  const user1 = await client.user.create({
-    data: {
-      firstname: "John",
-      lastname: "Doe",
-      username: "j.doe",
-      password: user1Password,
-      roleId: commercialRole.id,
-    },
-  });
+    const user = await client.user.create({
+      data: {
+        username: `${firstname.toLowerCase()[0]}.${lastname.toLowerCase()}`,
+        email,
+        firstname,
+        lastname: lastname.toUpperCase(),
+        roleId: commercialRole.id,
+        password: hashedPassword,
+        SecteurUser: {
+          createMany: {
+            data: secteurs.map((s) => ({
+              secteurId: s.id,
+            })),
+          },
+        },
+      },
+    });
+
+    console.log(`Commercial ${user.firstname} ${user.lastname} créé`);
+  }
 
   await client.user.create({
     data: {
-      firstname: "Alice",
-      lastname: "Doe",
-      username: "a.doe",
-      password: await bcrypt.hash("alice1234", 10),
-      roleId: chefRole.id,
+      username: "admin",
+      email: "admin@localhost",
+      firstname: "Admin",
+      lastname: "Admin",
+      roleId: adminRole.id,
+      password: await bcrypt.hash("admin", 10),
     },
   });
-
-  // Créer plus d'utilisateurs si nécessaire...
-
-  console.log("Users seeded");
-
-  return { adminUser, user1 };
 }
 
 export default seedUsers;

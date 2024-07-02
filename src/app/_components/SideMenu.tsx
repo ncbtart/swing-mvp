@@ -3,16 +3,30 @@
 import { signOut } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSessionContext } from "../_hooks/useSession";
 import { RoleName } from "@prisma/client";
 
+import { useAtom } from "jotai";
+import { menuOpenAtom } from "@/app/_hooks/jotai/menuOpen";
+import useWindowSize from "../_hooks/useWindowSize";
+
 export default function SideMenu() {
+  const [isOpen, setIsOpen] = useAtom(menuOpenAtom);
+
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  const { width } = useWindowSize();
 
   const { session } = useSessionContext();
 
   const isAdmin = session?.user?.role.name === RoleName.ADMIN;
+
+  useEffect(() => {
+    if (width && width >= 768) {
+      setIsOpen(true);
+    }
+  }, [width, setIsOpen]);
 
   // Fonction pour basculer l'état du dernier div
   const toggleSidebar = () => {
@@ -38,8 +52,12 @@ export default function SideMenu() {
   };
 
   return (
-    <div className="sticky z-30 flex ">
-      <div className="z-40 flex w-20 flex-col justify-between border-e bg-white">
+    <div
+      className={`sticky z-30 flex transition-all ${isOpen ? (isSidebarOpen ? "w-64" : "") : "w-0 -translate-x-full"}`}
+    >
+      <div
+        className={`z-40 flex ${isOpen ? "w-20" : "w-0"} flex-col justify-between border-e bg-white`}
+      >
         <div>
           <div className="inline-flex h-16 w-full  items-center justify-center">
             <Image src="/img/logo.gif" alt="logo" width={64} height={64} />
@@ -48,31 +66,33 @@ export default function SideMenu() {
           <div className="border-t border-gray-100">
             <div className="px-2">
               <ul className="space-y-1 border-gray-100 py-4">
-                <li>
-                  <Link
-                    href="/dashboard/commercial/etablissements"
-                    className="group relative flex justify-center rounded px-2 py-1.5 text-gray-500 hover:bg-gray-50 hover:text-gray-700"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth="1.5"
-                      stroke="currentColor"
-                      className="h-6 w-6"
+                {width && width >= 768 && (
+                  <li>
+                    <Link
+                      href="/dashboard/commercial/etablissements"
+                      className="group relative flex justify-center rounded px-2 py-1.5 text-gray-500 hover:bg-gray-50 hover:text-gray-700"
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Z"
-                      />
-                    </svg>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth="1.5"
+                        stroke="currentColor"
+                        className="h-6 w-6"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Z"
+                        />
+                      </svg>
 
-                    <span className="invisible absolute start-full top-1/2 ms-4 -translate-y-1/2 rounded bg-gray-900 px-2 py-1.5 text-xs font-medium text-white group-hover:visible">
-                      Etablissements
-                    </span>
-                  </Link>
-                </li>
+                      <span className="invisible absolute start-full top-1/2 ms-4 -translate-y-1/2 rounded bg-gray-900 px-2 py-1.5 text-xs font-medium text-white group-hover:visible">
+                        Etablissements
+                      </span>
+                    </Link>
+                  </li>
+                )}
 
                 <li>
                   <Link
@@ -100,31 +120,33 @@ export default function SideMenu() {
                   </Link>
                 </li>
 
-                <li>
-                  <Link
-                    href="/dashboard/commercial/ao"
-                    className="group relative flex justify-center rounded px-2 py-1.5 text-gray-500 hover:bg-gray-50 hover:text-gray-700"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth="1.5"
-                      stroke="currentColor"
-                      className="h-6 w-6"
+                {width && width >= 768 && (
+                  <li>
+                    <Link
+                      href="/dashboard/commercial/ao"
+                      className="group relative flex justify-center rounded px-2 py-1.5 text-gray-500 hover:bg-gray-50 hover:text-gray-700"
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.332A48.36 48.36 0 0 0 12 9.75c-2.551 0-5.056.2-7.5.582V21M3 21h18M12 6.75h.008v.008H12V6.75Z"
-                      />
-                    </svg>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth="1.5"
+                        stroke="currentColor"
+                        className="h-6 w-6"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.332A48.36 48.36 0 0 0 12 9.75c-2.551 0-5.056.2-7.5.582V21M3 21h18M12 6.75h.008v.008H12V6.75Z"
+                        />
+                      </svg>
 
-                    <span className="invisible absolute start-full top-1/2 ms-4 -translate-y-1/2 rounded bg-gray-900 px-2 py-1.5 text-xs font-medium text-white group-hover:visible">
-                      AO
-                    </span>
-                  </Link>
-                </li>
+                      <span className="invisible absolute start-full top-1/2 ms-4 -translate-y-1/2 rounded bg-gray-900 px-2 py-1.5 text-xs font-medium text-white group-hover:visible">
+                        AO
+                      </span>
+                    </Link>
+                  </li>
+                )}
 
                 <li>
                   <Link
@@ -189,7 +211,9 @@ export default function SideMenu() {
           </div>
         </div>
 
-        <div className="sticky inset-x-0 bottom-0 border-t border-gray-100 bg-white p-2">
+        <div
+          className={`sticky inset-x-0 bottom-0 border-t border-gray-100 bg-white ${isOpen && "p-2"}`}
+        >
           <form onSubmit={handleLogoutSubmit}>
             <button
               type="submit"

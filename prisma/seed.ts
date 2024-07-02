@@ -10,15 +10,19 @@ import seedChirurgien from "./chirurgien.seed";
 const prisma = new PrismaClient();
 
 async function main() {
-  await prisma.referenceChir.deleteMany();
+  await prisma.productAvancement.deleteMany();
 
+  await prisma.etablissementAO.deleteMany();
+  await prisma.modelEssaiRendezVous.deleteMany();
+  await prisma.chirurgienRendezVous.deleteMany();
+  await prisma.rendezVous.deleteMany();
   await prisma.usingSurgery.deleteMany();
-
+  await prisma.referenceChir.deleteMany();
+  await prisma.usingSurgery.deleteMany();
   await prisma.chirurgien.deleteMany();
 
   await prisma.model.deleteMany();
   await prisma.product.deleteMany();
-
   await prisma.etablissement.deleteMany();
 
   await prisma.secteurUser.deleteMany();
@@ -28,10 +32,11 @@ async function main() {
   await prisma.user.deleteMany();
   await prisma.role.deleteMany();
 
-  const { admin, chef, commercial } = await seedRole(prisma);
-  const { user1 } = await seedUsers(prisma, admin, chef, commercial);
   await seedDepartment(prisma);
   const secteurs = await seedSecteur(prisma);
+
+  const { admin, chef, commercial } = await seedRole(prisma);
+  await seedUsers(prisma, admin, chef, commercial);
 
   await seedReferences(prisma);
   const etablissement = await seedEtablissement(prisma);
@@ -44,13 +49,6 @@ async function main() {
   if (!firstSecteur) {
     throw new Error("No secteur found");
   }
-
-  await prisma.secteurUser.create({
-    data: {
-      userId: user1.id,
-      secteurId: firstSecteur.id,
-    },
-  });
 
   console.log("Seeding complete");
 }

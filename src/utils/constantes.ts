@@ -47,11 +47,11 @@ export const SurgeriesByService = {
     Surgery.EIPC,
     Surgery.ERM,
     Surgery.PROLAPSUS,
-  ],
-  CHIR_UROLOGIE: [Surgery.PROLAPSUS, Surgery.BSU],
-  CHIR_GINECO: [Surgery.PROLAPSUS, Surgery.BSU],
-  PHARMACIE: [],
-  X_BLOC: [],
+  ] as Surgery[],
+  CHIR_UROLOGIE: [Surgery.PROLAPSUS, Surgery.BSU] as Surgery[],
+  CHIR_GINECO: [Surgery.PROLAPSUS, Surgery.BSU] as Surgery[],
+  PHARMACIE: [] as Surgery[],
+  X_BLOC: [] as Surgery[],
 };
 
 export const RDVByService = {
@@ -61,6 +61,7 @@ export const RDVByService = {
     RendezVousType.RDV1_BLOC_CHIR,
     RendezVousType.RDV2_BLOC_CHIR,
     RendezVousType.RDV_STAFF_CHIR,
+    RendezVousType.ESSAI,
   ],
   CHIR_UROLOGIE: [
     RendezVousType.RDV1_CONSULT_CHIR,
@@ -68,6 +69,7 @@ export const RDVByService = {
     RendezVousType.RDV1_BLOC_CHIR,
     RendezVousType.RDV2_BLOC_CHIR,
     RendezVousType.RDV_STAFF_CHIR,
+    RendezVousType.ESSAI,
   ],
   CHIR_GINECO: [
     RendezVousType.RDV1_CONSULT_CHIR,
@@ -75,6 +77,7 @@ export const RDVByService = {
     RendezVousType.RDV1_BLOC_CHIR,
     RendezVousType.RDV2_BLOC_CHIR,
     RendezVousType.RDV_STAFF_CHIR,
+    RendezVousType.ESSAI,
   ],
   PHARMACIE: [
     RendezVousType.RDV1,
@@ -97,8 +100,7 @@ export const RDVByServiceWithEssai = {
     RendezVousType.RDV1_BLOC_CHIR,
     RendezVousType.RDV2_BLOC_CHIR,
     RendezVousType.RDV_STAFF_CHIR,
-    RendezVousType.ESSAI1,
-    RendezVousType.ESSAI2,
+    RendezVousType.ESSAI,
   ],
   CHIR_UROLOGIE: [
     RendezVousType.RDV1_CONSULT_CHIR,
@@ -106,8 +108,7 @@ export const RDVByServiceWithEssai = {
     RendezVousType.RDV1_BLOC_CHIR,
     RendezVousType.RDV2_BLOC_CHIR,
     RendezVousType.RDV_STAFF_CHIR,
-    RendezVousType.ESSAI1,
-    RendezVousType.ESSAI2,
+    RendezVousType.ESSAI,
   ],
   CHIR_GINECO: [
     RendezVousType.RDV1_CONSULT_CHIR,
@@ -115,8 +116,7 @@ export const RDVByServiceWithEssai = {
     RendezVousType.RDV1_BLOC_CHIR,
     RendezVousType.RDV2_BLOC_CHIR,
     RendezVousType.RDV_STAFF_CHIR,
-    RendezVousType.ESSAI1,
-    RendezVousType.ESSAI2,
+    RendezVousType.ESSAI,
   ],
   PHARMACIE: [
     RendezVousType.RDV1,
@@ -138,8 +138,7 @@ export const RendezVousTypeLabels = {
   RDV1_BLOC_CHIR: "RDV1 Bloc Chir",
   RDV2_BLOC_CHIR: "RDV2 Bloc Chir",
   RDV_STAFF_CHIR: "RDV Staff Chir",
-  ESSAI1: "Essai 1",
-  ESSAI2: "Essai 2",
+  ESSAI: "Essai",
   RDV1: "RDV1",
   RDV2: "RDV2",
   RDV_VALIDATION: "RDV Validation",
@@ -168,13 +167,13 @@ export const GroupRDVTypes = {
     RendezVousType.RDV1_IMPLANTATION,
     RendezVousType.RDV2_IMPLANTATION,
   ],
-  ESSAI: [RendezVousType.ESSAI1, RendezVousType.ESSAI2],
+  ESSAI: [RendezVousType.ESSAI],
 };
 
 export const SurgeriesByTypeMarche = {
   CHIR_DIGESTIF: [
-    Surgery.HIC,
     Surgery.HIL,
+    Surgery.HIC,
     Surgery.HOC,
     Surgery.HOL,
     Surgery.EIPL,
@@ -203,4 +202,9 @@ export const AttributionLabels = {
   EN_COURS: "En cours",
   INFRUCTUEUX: "Infructueux",
   SANS_SUITE: "Sans suite",
+};
+
+export const PoseLabels = {
+  MONO: "Mono",
+  BILLATERAL: "Billat",
 };

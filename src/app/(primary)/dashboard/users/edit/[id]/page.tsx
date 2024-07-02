@@ -62,6 +62,7 @@ export default function UserEditPage({ params }: { params: { id: string } }) {
         ? (formData.get("email") as string)
         : undefined,
       roleId: formData.get("roleId") as string,
+      phone: formData.get("phone") as string,
     };
 
     editMutation.mutate({
@@ -69,6 +70,7 @@ export default function UserEditPage({ params }: { params: { id: string } }) {
       firstname: body.firstname,
       lastname: body.lastname,
       email: body.email,
+      phone: body.phone,
       roleId: body.roleId,
       password: formData.get("password")
         ? (formData.get("password") as string)
@@ -192,7 +194,8 @@ export default function UserEditPage({ params }: { params: { id: string } }) {
                         type="tel"
                         className="w-full rounded-lg border-gray-200 p-4 pe-12 text-sm shadow-sm"
                         placeholder="Téléphone"
-                        name="téléphone"
+                        defaultValue={user?.phone ?? ""}
+                        name="phone"
                       />
                     </div>
                   </div>

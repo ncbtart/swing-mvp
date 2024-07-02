@@ -457,7 +457,7 @@
   },
   {
     "name": "CO3+ (S)",
-    "surgery": ["HIL", "HIC", "ERM"],
+    "surgery": ["ERM"],
     "fabricant": "SWING",
     "models": [
       {

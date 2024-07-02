@@ -377,4 +377,118 @@ export const chirurgienRouter = createTRPCRouter({
 
       return useHic;
     }),
+
+  getAvancementHistorique: protectedProcedure
+    .input(
+      z.object({
+        contactId: z.string(),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const contact = await ctx.db.chirurgien.findUnique({
+        where: {
+          id: input.contactId,
+        },
+        include: {
+          usingSurgery: {
+            include: {
+              avancement: {
+                include: {
+                  products: {
+                    include: {
+                      product: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+
+      return contact;
+    }),
+  setAvancementHistorique: protectedProcedure
+    .input(
+      z.object({
+        chirugienId: z.string(),
+        surgery: z.nativeEnum(Surgery),
+        avancement: z.number(),
+        products: z.array(z.string()),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const usingSurgery = await ctx.db.usingSurgery.findFirst({
+        where: {
+          chirurgienId: input.chirugienId,
+          surgery: input.surgery,
+        },
+        include: {
+          avancement: true,
+        },
+      });
+
+      if (!usingSurgery?.avancement) {
+        const newUsingSurgery = await ctx.db.usingSurgery.create({
+          data: {
+            chirurgienId: input.chirugienId,
+            surgery: input.surgery,
+          },
+        });
+
+        await ctx.db.avancement.create({
+          data: {
+            UsingSurgery: {
+              connect: {
+                id: newUsingSurgery.id,
+              },
+            },
+            avancement: input.avancement,
+            products: {
+              create: input.products.map((p) => ({
+                productId: p,
+              })),
+            },
+          },
+        });
+      } else {
+        console.log("Update surgery");
+
+        await ctx.db.avancement.update({
+          where: {
+            id: usingSurgery.avancement.id,
+          },
+          data: {
+            avancement: input.avancement,
+            products: {
+              deleteMany: {},
+              create: input.products.map((p) => ({
+                productId: p,
+              })),
+            },
+          },
+        });
+      }
+
+      return await ctx.db.chirurgien.findUnique({
+        where: {
+          id: input.chirugienId,
+        },
+        include: {
+          usingSurgery: {
+            include: {
+              avancement: {
+                include: {
+                  products: {
+                    include: {
+                      product: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+    }),
 });

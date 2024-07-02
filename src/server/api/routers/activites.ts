@@ -1,7 +1,25 @@
-import { RendezVousType, RoleName, Surgery } from "@prisma/client";
+import {
+  Pose,
+  RendezVousType,
+  RoleName,
+  Service,
+  Surgery,
+} from "@prisma/client";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 
 import { z } from "zod";
+import {
+  createCalendarEvent,
+  createDedicatedCalendar,
+  deleteCalendarEvent,
+  getAuthClient,
+  updateCalendarEvent,
+} from "@/utils/google.api";
+import {
+  CiviliteLabels,
+  RendezVousTypeLabels,
+  ServiceLabels,
+} from "@/utils/constantes";
 
 export const activitesRouter = createTRPCRouter({
   create: protectedProcedure
@@ -16,13 +34,45 @@ export const activitesRouter = createTRPCRouter({
             z.object({
               modelId: z.string(),
               surgery: z.nativeEnum(Surgery),
+              pose: z.nativeEnum(Pose).optional().nullable(),
             }),
           )
           .optional()
           .nullable(),
+        lastRdvId: z.string().optional().nullable(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
+      const user = await ctx.db.user.findUnique({
+        where: { id: ctx.session.user.id },
+      });
+
+      if (!user) {
+        throw new Error("User not found");
+      }
+
+      let calendarId = user.googleCalendarId;
+
+      const authClient = await getAuthClient(ctx.session.user.accessToken!);
+
+      if (!calendarId) {
+        const newCalendar = await createDedicatedCalendar(
+          authClient,
+          `SWING Calendrier`,
+        );
+
+        if (!newCalendar.id) {
+          throw new Error("Google Calendar ID not found");
+        }
+
+        calendarId = newCalendar.id;
+
+        await ctx.db.user.update({
+          where: { id: user.id },
+          data: { googleCalendarId: calendarId },
+        });
+      }
+
       const placeRDV = await ctx.db.chirurgien.findFirst({
         where: {
           id: {
@@ -74,19 +124,84 @@ export const activitesRouter = createTRPCRouter({
               })),
             },
           },
+
+          prevRendezVousId: input.lastRdvId,
           ModelEssaiRendezVous: {
             createMany: {
               data:
                 input.modelEssai?.map((model) => ({
                   modelId: model.modelId,
                   surgery: model.surgery,
+                  pose: model.pose,
                 })) ?? [],
+            },
+          },
+        },
+        include: {
+          chirurgiens: {
+            include: {
+              chirurgien: {
+                include: {
+                  etablissement: true,
+                },
+              },
             },
           },
         },
       });
 
-      return rdv;
+      let colorId;
+
+      if (rdv.type === RendezVousType.ESSAI) {
+        colorId = "10";
+      } else {
+        switch (rdv.chirurgiens[0]?.chirurgien?.service) {
+          case Service.CHIR_DIGESTIF:
+            colorId = "1";
+            break;
+          case Service.CHIR_GINECO:
+            colorId = "2";
+            break;
+          case Service.CHIR_UROLOGIE:
+            colorId = "3";
+            break;
+          case Service.PHARMACIE:
+            colorId = "4";
+            break;
+          case Service.X_BLOC:
+            colorId = "5";
+            break;
+          default:
+            colorId = "1";
+            break;
+        }
+      }
+
+      const event = {
+        summary: `${rdv.chirurgiens[0]?.chirurgien?.etablissement?.name} - ${rdv.chirurgiens.map((c) => `${ServiceLabels[c.chirurgien.service]} ${CiviliteLabels[c.chirurgien.civilite]} ${c.chirurgien.firstname} ${c.chirurgien?.lastname}`).join(", ")} -  ${RendezVousTypeLabels[input.rdvType]}`,
+        start: {
+          dateTime: input.date.toISOString(),
+          timeZone: "Europe/Paris",
+        },
+        end: {
+          dateTime: input.dateFin.toISOString(),
+          timeZone: "Europe/Paris",
+        },
+        colorId,
+      };
+
+      const googleEvent = await createCalendarEvent(
+        authClient,
+        calendarId,
+        event,
+      );
+
+      await ctx.db.rendezVous.update({
+        where: { id: rdv.id },
+        data: { googleEventId: googleEvent.id },
+      });
+
+      return { rdv, googleEvent };
     }),
 
   updateDate: protectedProcedure
@@ -98,6 +213,14 @@ export const activitesRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
+      const user = await ctx.db.user.findUnique({
+        where: { id: ctx.session.user.id },
+      });
+
+      if (!user) {
+        throw new Error("User not found");
+      }
+
       const rdv = await ctx.db.rendezVous.update({
         where: {
           id: input.id,
@@ -108,7 +231,33 @@ export const activitesRouter = createTRPCRouter({
         },
       });
 
-      return rdv;
+      if (!rdv.googleEventId) {
+        throw new Error("Google Calendar event ID not found");
+      }
+
+      const authClient = await getAuthClient(ctx.session.user.accessToken!);
+      const event = {
+        start: {
+          dateTime: input.date.toISOString(),
+          timeZone: "Europe/Paris",
+        },
+        end: {
+          dateTime: input.dateFin.toISOString(),
+          timeZone: "Europe/Paris",
+        },
+      };
+
+      try {
+        const googleEvent = await updateCalendarEvent(
+          authClient,
+          user.googleCalendarId!,
+          rdv.googleEventId,
+          event,
+        );
+        return { rdv, googleEvent };
+      } catch (e) {
+        return { rdv };
+      }
     }),
 
   delete: protectedProcedure
@@ -118,11 +267,58 @@ export const activitesRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      return await ctx.db.chirurgienRendezVous.delete({
+      const user = await ctx.db.user.findUnique({
+        where: { id: ctx.session.user.id },
+      });
+
+      if (!user) {
+        throw new Error("User not found");
+      }
+
+      const chirRdv = await ctx.db.chirurgienRendezVous.delete({
         where: {
           id: input.id,
         },
       });
+
+      const rdv = await ctx.db.rendezVous.findFirst({
+        where: {
+          id: chirRdv.rendezVousId,
+        },
+        include: {
+          chirurgiens: true,
+        },
+      });
+
+      if (!rdv) {
+        throw new Error("Rendez-vous not found");
+      }
+
+      if (rdv.chirurgiens.length === 0) {
+        await ctx.db.rendezVous.delete({
+          where: {
+            id: chirRdv.rendezVousId,
+          },
+        });
+
+        if (!rdv.googleEventId) {
+          throw new Error("Google Calendar event ID not found");
+        }
+
+        const authClient = await getAuthClient(ctx.session.user.accessToken!);
+
+        try {
+          await deleteCalendarEvent(
+            authClient,
+            user.googleCalendarId!,
+            rdv.googleEventId,
+          );
+        } catch (e) {
+          console.log(e);
+        }
+      }
+
+      return chirRdv;
     }),
 
   findAll: protectedProcedure
@@ -183,35 +379,44 @@ export const activitesRouter = createTRPCRouter({
   finAllByChirurgien: protectedProcedure
     .input(
       z.object({
+        chirurgienId: z.string().optional().nullable(),
         skip: z.number().default(0),
         take: z.number().default(10),
         status: z.boolean().optional().nullable(),
         me: z.boolean().optional().nullable(),
         etablissementId: z.string().optional().nullable(),
+        secteurId: z.string().optional().nullable(),
+        order: z.enum(["asc", "desc"]).optional().nullable(),
+        search: z.string().optional().nullable(),
       }),
     )
     .query(async ({ ctx, input }) => {
       // check if the user has the right to see the data
 
-      if (input.me && ctx.session.user.role.name !== RoleName.ADMIN) {
-        throw new Error("Unauthorized");
-      }
-
       let whereClause = {};
 
-      if (input.status !== undefined) {
+      if (!input.me) {
         whereClause = {
-          ...whereClause,
-          done: input.status,
+          rendezVous: {
+            date: {
+              // last 30 days
+              gte: new Date(new Date().getTime() - 30 * 24 * 60 * 60 * 1000),
+            },
+          },
         };
-      }
-
-      if (input.me) {
+      } else {
         whereClause = {
           ...whereClause,
           rendezVous: {
             commercialId: ctx.session.user.id,
           },
+        };
+      }
+
+      if (input.status !== undefined) {
+        whereClause = {
+          ...whereClause,
+          done: input.status,
         };
       }
 
@@ -224,14 +429,90 @@ export const activitesRouter = createTRPCRouter({
         };
       }
 
+      if (input.secteurId) {
+        whereClause = {
+          ...whereClause,
+          chirurgien: {
+            etablissement: {
+              departement: {
+                secteurId: input.secteurId,
+              },
+            },
+          },
+        };
+      }
+
+      if (input.search) {
+        whereClause = {
+          ...whereClause,
+          OR: [
+            {
+              chirurgien: {
+                firstname: {
+                  contains: input.search,
+                  mode: "insensitive",
+                },
+              },
+            },
+            {
+              chirurgien: {
+                lastname: {
+                  contains: input.search,
+                  mode: "insensitive",
+                },
+              },
+            },
+            {
+              chirurgien: {
+                etablissement: {
+                  name: {
+                    contains: input.search,
+                    mode: "insensitive",
+                  },
+                },
+              },
+            },
+            {
+              rendezVous: {
+                commercial: {
+                  firstname: {
+                    contains: input.search,
+                    mode: "insensitive",
+                  },
+                },
+              },
+            },
+            {
+              rendezVous: {
+                commercial: {
+                  lastname: {
+                    contains: input.search,
+                    mode: "insensitive",
+                  },
+                },
+              },
+            },
+          ],
+        };
+      }
+
+      if (input.chirurgienId) {
+        whereClause = {
+          ...whereClause,
+          chirurgienId: input.chirurgienId,
+        };
+      }
+
       const rdvs = await ctx.db.chirurgienRendezVous.findMany({
         take: input.take,
         skip: input.skip,
-        orderBy: {
-          rendezVous: {
-            date: "asc",
+        orderBy: [
+          {
+            rendezVous: {
+              date: input.order ?? "asc",
+            },
           },
-        },
+        ],
         where: whereClause,
         include: {
           chirurgien: {
@@ -239,7 +520,33 @@ export const activitesRouter = createTRPCRouter({
               etablissement: true,
             },
           },
-          rendezVous: true,
+          rendezVous: {
+            include: {
+              ModelEssaiRendezVous: {
+                include: {
+                  model: true,
+                },
+              },
+              commercial: true,
+              nextRendezVous: {
+                orderBy: {
+                  date: "asc",
+                },
+                include: {
+                  ModelEssaiRendezVous: {
+                    include: {
+                      model: true,
+                    },
+                  },
+                  chirurgiens: {
+                    include: {
+                      chirurgien: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
         },
       });
 
@@ -309,7 +616,15 @@ export const activitesRouter = createTRPCRouter({
               etablissement: true,
             },
           },
-          rendezVous: true,
+          rendezVous: {
+            include: {
+              ModelEssaiRendezVous: {
+                include: {
+                  model: true,
+                },
+              },
+            },
+          },
         },
       });
 
@@ -326,6 +641,16 @@ export const activitesRouter = createTRPCRouter({
         id: z.string(),
         done: z.boolean(),
         observation: z.string().optional(),
+        modelEssai: z.array(
+          z.object({
+            id: z.string(),
+            done: z.boolean(),
+            observation: z.string().optional(),
+            validation: z.boolean(),
+            schedule: z.boolean().default(false),
+            filePath: z.string().optional().nullable(),
+          }),
+        ),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -356,6 +681,24 @@ export const activitesRouter = createTRPCRouter({
         data: {
           done: input.done,
           observation: input.observation,
+          rendezVous: {
+            update: {
+              ModelEssaiRendezVous: {
+                updateMany: input.modelEssai.map((model) => ({
+                  where: {
+                    id: model.id,
+                  },
+                  data: {
+                    done: model.done,
+                    observation: model.observation,
+                    validation: model.validation,
+                    schedule: model.schedule,
+                    filePath: model.filePath,
+                  },
+                })),
+              },
+            },
+          },
         },
       });
     }),

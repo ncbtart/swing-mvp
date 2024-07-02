@@ -101,6 +101,7 @@ export const userRouter = createTRPCRouter({
           firstname: true,
           lastname: true,
           email: true,
+          phone: true,
           role: { select: { id: true, name: true } },
         },
         where: { id: input.userId },
@@ -113,6 +114,7 @@ export const userRouter = createTRPCRouter({
         id: true,
         firstname: true,
         lastname: true,
+        phone: true,
         email: true,
         role: { select: { id: true, name: true } },
       },
@@ -229,6 +231,7 @@ export const userRouter = createTRPCRouter({
         firstname: z.string().min(1),
         lastname: z.string().min(1),
         email: z.string().email().optional(),
+        phone: z.string().optional(),
         roleId: z.string(),
         password: z
           .string()
@@ -277,6 +280,7 @@ export const userRouter = createTRPCRouter({
             firstname: formatPrenom(input.firstname),
             lastname: input.lastname.toUpperCase(),
             email: input.email,
+            phone: input.phone,
             role: { connect: { id: input.roleId } },
             password: hashedPassword,
           },
@@ -289,6 +293,7 @@ export const userRouter = createTRPCRouter({
           firstname: formatPrenom(input.firstname),
           lastname: input.lastname.toUpperCase(),
           email: input.email,
+          phone: input.phone,
           role: { connect: { id: input.roleId } },
         },
       });

@@ -123,7 +123,9 @@ export default function Account() {
                     </div>
                     <div className="grid grid-cols-1 gap-1 bg-white p-3 even:bg-gray-50 sm:grid-cols-3 sm:gap-4">
                       <dt className="font-medium text-gray-900">Téléphone</dt>
-                      <dd className="text-gray-700 sm:col-span-2"></dd>
+                      <dd className="text-gray-700 sm:col-span-2">
+                        {me?.phone}
+                      </dd>
                     </div>
                     <div
                       className={`grid grid-cols-1 gap-1 bg-white p-3 even:bg-gray-50 sm:grid-cols-3 sm:gap-4 ${editPasswordMode ? "sm:row-span-2" : ""}`}

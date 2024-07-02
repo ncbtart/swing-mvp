@@ -1,6 +1,16 @@
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { paginationSchema } from "@/server/schema";
-import { EtablissementType, RoleName } from "@prisma/client";
+import { SurgeriesByService } from "@/utils/constantes";
+import {
+  type Chirurgien,
+  EtablissementType,
+  RoleName,
+  type Surgery,
+  type Product,
+  Service,
+  Fabricant,
+  RendezVousType,
+} from "@prisma/client";
 
 import { z } from "zod";
 
@@ -334,5 +344,200 @@ export const etablissementtRouter = createTRPCRouter({
       });
 
       return sources;
+    }),
+  avancement: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .query(async ({ ctx, input }) => {
+      type SurgeryAvancement = {
+        surgery: Surgery;
+        avancement: number;
+        products: Product[];
+      };
+
+      type SurgeryUsageMap = Record<
+        string,
+        {
+          isUsing: boolean;
+          avancement: number | undefined;
+          products: { product: Product }[] | undefined;
+        }
+      >;
+
+      type ReferenceMap = Record<string, number>;
+
+      type RendezVousMap = Record<
+        string,
+        {
+          done: boolean;
+          type: RendezVousType;
+          products: { product: Product; validation: boolean }[];
+        }
+      >;
+
+      const table: {
+        chirurgien: Chirurgien;
+        surgeries: SurgeryAvancement[];
+        avancementChir: number;
+      }[] = [];
+
+      const chirurgiens = await ctx.db.chirurgien.findMany({
+        where: {
+          etablissement: {
+            id: input.id,
+          },
+          service: {
+            in: [
+              Service.CHIR_DIGESTIF, // Chirurgie Digestive
+              Service.CHIR_GINECO, // Chirurgie Gynécologique
+              Service.CHIR_UROLOGIE, // Chirurgie Urologique
+            ],
+          },
+        },
+        include: {
+          usingSurgery: {
+            include: {
+              avancement: {
+                include: {
+                  products: {
+                    include: {
+                      product: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+          references: {
+            include: {
+              product: true,
+            },
+            where: {
+              product: {
+                fabricant: Fabricant.SWING,
+              },
+            },
+          },
+          ChirurgienRendezVous: {
+            include: {
+              rendezVous: {
+                include: {
+                  ModelEssaiRendezVous: {
+                    include: {
+                      model: {
+                        include: {
+                          product: true,
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+
+      chirurgiens.forEach((chirurgien) => {
+        const surgeries: SurgeryAvancement[] = [];
+
+        const surgeryUsageMap: SurgeryUsageMap = chirurgien.usingSurgery.reduce(
+          (acc, s) => {
+            acc[s.surgery] = {
+              isUsing: true,
+              avancement: s?.avancement?.avancement,
+              products: s?.avancement?.products,
+            };
+            return acc;
+          },
+          {} as SurgeryUsageMap,
+        );
+
+        const referenceMap: ReferenceMap = chirurgien.references.reduce(
+          (acc, ref) => {
+            acc[ref.surgery] = ref.product ? 4 : 0;
+            return acc;
+          },
+          {} as ReferenceMap,
+        );
+
+        const rendezVousMap: RendezVousMap =
+          chirurgien.ChirurgienRendezVous.reduce((acc, rdv) => {
+            rdv.rendezVous.ModelEssaiRendezVous.forEach((modelEssai) => {
+              if (!acc[modelEssai.surgery]) {
+                acc[modelEssai.surgery] = {
+                  done: rdv.done,
+                  type: rdv.rendezVous.type,
+                  products: [],
+                };
+              }
+
+              // check if product is not already in the list
+              if (
+                !acc[modelEssai.surgery]?.products.some(
+                  (p) => p.product.id === modelEssai.model.product.id,
+                )
+              ) {
+                acc[modelEssai.surgery]?.products.push({
+                  product: modelEssai.model.product,
+                  validation: modelEssai.validation,
+                });
+              }
+            });
+            return acc;
+          }, {} as RendezVousMap);
+
+        SurgeriesByService[chirurgien.service].forEach((surgery) => {
+          if (surgeryUsageMap[surgery]?.isUsing === false) {
+            surgeries.push({ surgery, avancement: 0, products: [] });
+          } else if (referenceMap[surgery] === 4) {
+            surgeries.push({
+              surgery,
+              avancement: 4,
+              products: chirurgien.references
+                .filter((ref) => ref.surgery === surgery)
+                .map((ref) => ref.product),
+            });
+          } else {
+            const rendezVous = rendezVousMap[surgery];
+            if (!rendezVous) {
+              if (surgeryUsageMap[surgery]?.avancement) {
+                surgeries.push({
+                  surgery,
+                  avancement: surgeryUsageMap[surgery]?.avancement ?? 1,
+                  products:
+                    surgeryUsageMap[surgery]?.products?.map((p) => p.product) ??
+                    [],
+                });
+              } else {
+                surgeries.push({ surgery, avancement: 1, products: [] });
+              }
+            } else if (
+              rendezVous.done &&
+              rendezVous.type === RendezVousType.ESSAI
+            ) {
+              surgeries.push({
+                surgery,
+                avancement: 3,
+                products: rendezVous.products.map((p) => p.product),
+              });
+            } else {
+              surgeries.push({
+                surgery,
+                avancement: 2,
+                products: rendezVous.products.map((p) => p.product),
+              });
+            }
+          }
+        });
+
+        const avancementChir = surgeries.reduce(
+          (acc, s) => (s.avancement > acc ? s.avancement : acc),
+          0,
+        );
+
+        table.push({ chirurgien, surgeries, avancementChir });
+      });
+
+      return table;
     }),
 });

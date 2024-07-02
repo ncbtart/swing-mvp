@@ -118,6 +118,14 @@ export default function Page() {
           >
             Connexion
           </button>
+
+          <button
+            type="button"
+            onClick={() => signIn("google")}
+            className="block w-full rounded-lg bg-red-600 px-5 py-3 text-sm font-medium text-white"
+          >
+            Connexion avec Google
+          </button>
         </form>
       </div>
     </div>

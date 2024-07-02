@@ -21,6 +21,7 @@ import {
   type UsingSurgery,
   type EtablissementType,
 } from "@prisma/client";
+import { on } from "events";
 
 import Image from "next/image";
 import Link from "next/link";
@@ -68,7 +69,7 @@ export default function FicheEtablissement({
               <span className="sr-only">Loading...</span>
             </div>
           ) : (
-            <div className="relative mt-6 rounded-lg bg-white p-6 shadow-lg lg:col-span-3 lg:p-12">
+            <div className="relative mt-2 rounded-lg bg-white p-6 shadow-lg lg:col-span-3 lg:p-12">
               <Image
                 src="/img/logo.gif"
                 alt="Swing"
@@ -77,24 +78,23 @@ export default function FicheEtablissement({
                 className="absolute left-6 top-6"
               />
 
-              <h1 className="mb-12 text-center text-xl font-medium uppercase text-black sm:text-2xl">
-                Fiche contact
-              </h1>
-
-              <p>
-                <span className="my-8 text-xl font-bold text-blue-900">
-                  {contact?.firstname} {contact?.lastname} -{" "}
-                  <Link
-                    href={
-                      "/dashboard/etablissements/fiche/" +
-                      contact?.etablissement.id
-                    }
-                  >
-                    {contact?.etablissement.name} {contact?.etablissement.ville}{" "}
-                    {contact?.etablissement.codePostal}
-                  </Link>
-                </span>
-              </p>
+              <div className="mb-12 text-center text-xl font-medium uppercase text-black sm:text-2xl">
+                <p>
+                  <span className="my-8 text-xl font-bold text-blue-900">
+                    {contact?.firstname} {contact?.lastname} -{" "}
+                    <Link
+                      href={
+                        "/dashboard/etablissements/fiche/" +
+                        contact?.etablissement.id
+                      }
+                    >
+                      {contact?.etablissement.name}{" "}
+                      {contact?.etablissement.ville}{" "}
+                      {contact?.etablissement.codePostal}
+                    </Link>
+                  </span>
+                </p>
+              </div>
 
               <div>
                 <div className="sm:hidden">
@@ -114,12 +114,20 @@ export default function FicheEtablissement({
                       />
 
                       {FonctionChirs.some((f) => f === contact?.fonction) && (
-                        <TabButton
-                          activeIndex={tabIndex}
-                          label="Références"
-                          setTabIndex={setTabIndex}
-                          tabIndex={1}
-                        />
+                        <>
+                          <TabButton
+                            activeIndex={tabIndex}
+                            label="Références"
+                            setTabIndex={setTabIndex}
+                            tabIndex={1}
+                          />
+                          <TabButton
+                            activeIndex={tabIndex}
+                            label="Historique"
+                            setTabIndex={setTabIndex}
+                            tabIndex={2}
+                          />
+                        </>
                       )}
                     </nav>
                   </div>
@@ -145,6 +153,8 @@ export default function FicheEtablissement({
                     1: contact && (
                       <References contact={contact} refetch={refetch} />
                     ),
+
+                    2: contact && <Historique contactId={contact.id} />,
                   }[tabIndex]
                 }
               </div>
@@ -834,53 +844,55 @@ export function References({
         </div>
         <div className="flex-grow"></div>
 
-        <div className="flex flex-col items-end space-y-2">
-          <div className="mt-6 flex w-full flex-row items-center justify-between space-x-4">
-            <label className="block text-left text-sm font-medium text-gray-700">
-              TAPP
-            </label>
-            <label className="relative inline-flex cursor-pointer items-center">
-              <input
-                id="switch"
-                type="checkbox"
-                className="peer sr-only"
-                checked={isTapp}
-                onChange={(e) => {
-                  setIsTapp(e.target.checked);
-                  setTappMutation.mutate({
-                    chirurgienId: contact.id,
-                    tapp: e.target.checked,
-                  });
-                }}
-              />
-              <label htmlFor="switch" className="hidden"></label>
-              <div className="peer h-6 w-11 rounded-full border bg-slate-200 after:absolute after:left-[2px] after:top-0.5 after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-green-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:ring-green-300"></div>
-            </label>
-          </div>
+        {SurgeriesByService[contact.service].includes(Surgery.HIC) && (
+          <div className="flex flex-col items-end space-y-2">
+            <div className="mt-6 flex w-full flex-row items-center justify-between space-x-4">
+              <label className="block text-left text-sm font-medium text-gray-700">
+                TAPP
+              </label>
+              <label className="relative inline-flex cursor-pointer items-center">
+                <input
+                  id="switch"
+                  type="checkbox"
+                  className="peer sr-only"
+                  checked={isTapp}
+                  onChange={(e) => {
+                    setIsTapp(e.target.checked);
+                    setTappMutation.mutate({
+                      chirurgienId: contact.id,
+                      tapp: e.target.checked,
+                    });
+                  }}
+                />
+                <label htmlFor="switch" className="hidden"></label>
+                <div className="peer h-6 w-11 rounded-full border bg-slate-200 after:absolute after:left-[2px] after:top-0.5 after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-green-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:ring-green-300"></div>
+              </label>
+            </div>
 
-          <div className="mt-6 flex w-full flex-row items-center justify-between space-x-4">
-            <label className="block text-left text-sm font-medium text-gray-700">
-              TEP
-            </label>
-            <label className="relative inline-flex cursor-pointer items-center">
-              <input
-                id="switch"
-                type="checkbox"
-                className="peer sr-only"
-                checked={isTep}
-                onChange={(e) => {
-                  setIsTep(e.target.checked);
-                  setTepMutation.mutate({
-                    chirurgienId: contact.id,
-                    tep: e.target.checked,
-                  });
-                }}
-              />
-              <label htmlFor="switch" className="hidden"></label>
-              <div className="peer h-6 w-11 rounded-full border bg-slate-200 after:absolute after:left-[2px] after:top-0.5 after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-green-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:ring-green-300"></div>
-            </label>
+            <div className="mt-6 flex w-full flex-row items-center justify-between space-x-4">
+              <label className="block text-left text-sm font-medium text-gray-700">
+                TEP
+              </label>
+              <label className="relative inline-flex cursor-pointer items-center">
+                <input
+                  id="switch"
+                  type="checkbox"
+                  className="peer sr-only"
+                  checked={isTep}
+                  onChange={(e) => {
+                    setIsTep(e.target.checked);
+                    setTepMutation.mutate({
+                      chirurgienId: contact.id,
+                      tep: e.target.checked,
+                    });
+                  }}
+                />
+                <label htmlFor="switch" className="hidden"></label>
+                <div className="peer h-6 w-11 rounded-full border bg-slate-200 after:absolute after:left-[2px] after:top-0.5 after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-green-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:ring-green-300"></div>
+              </label>
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       <div>
@@ -1161,6 +1173,362 @@ function NewRefForm({
             <button
               type="submit"
               disabled={!produit && !usingSurgery}
+              className="inline-flex items-center justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-gray-300"
+            >
+              Enregistrer
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+export function Historique({ contactId }: { contactId: string }) {
+  const [addSurgery, setAddSurgery] = useState<Surgery | undefined>();
+
+  const { data: historique, refetch } =
+    api.chirurgien.getAvancementHistorique.useQuery({
+      contactId,
+    });
+
+  return (
+    <>
+      <div className="mt-12">
+        <div className="mx-auto">
+          <div>
+            <div>
+              <table className="w-full table-auto border-collapse divide-gray-200  text-sm">
+                <tbody>
+                  <tr>
+                    <td className="border border-gray-400 bg-green-600 px-4 py-2">
+                      Réf validée et utilisée
+                    </td>
+                    <td className="border border-gray-400 bg-green-400 px-4 py-2">
+                      Réf validée fiche d&apos;essai jointe
+                    </td>
+                    <td className="border border-gray-400 bg-green-200 px-4 py-2">
+                      Réf essai programmé
+                    </td>
+                    <td className="border border-gray-400 px-4 py-2">
+                      N/A Technique non pratiquée
+                    </td>
+                    <td className="border border-gray-400 px-4 py-2">
+                      NCP Ne Change Pas
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div className="my-6 overflow-x-auto rounded-lg border">
+              <table className="min-w-full divide-y-2 divide-gray-200 bg-white text-sm">
+                <thead className="text-left">
+                  <tr>
+                    <th className="w-1/12 bg-gray-50 px-8 py-3">Spécialité</th>
+                    {historique &&
+                      SurgeriesByService[historique?.service].map((s) => {
+                        return (
+                          <th key={s} className="w-1/12 bg-gray-50 px-8 py-3">
+                            {s}
+                          </th>
+                        );
+                      })}
+                  </tr>
+                </thead>
+
+                <tbody className="divide-y divide-gray-200">
+                  <tr>
+                    <td className="border border-gray-100 bg-gray-50 px-6 py-4">
+                      <p className="text-sm font-medium text-gray-900">
+                        {historique && ServiceLabels[historique.service]}
+                      </p>
+                    </td>
+
+                    {historique &&
+                      SurgeriesByService[historique?.service].map((s) => {
+                        const avancement = historique?.usingSurgery.find(
+                          (a) => a.surgery === s,
+                        );
+
+                        let color;
+                        let text;
+
+                        if (!avancement) {
+                          return (
+                            <td
+                              key={s}
+                              onClick={() => {
+                                console.log(s);
+                                setAddSurgery(s);
+                              }}
+                              className={`border border-gray-100 px-6 py-4 ${color} cursor-pointer`}
+                            ></td>
+                          );
+                        }
+
+                        text = avancement?.avancement?.products
+                          .map((p) => p.product.reference)
+                          .join(", ");
+
+                        switch (avancement?.avancement?.avancement) {
+                          case 0:
+                            text = "N/A";
+                            color = "";
+                            break;
+                          case 1:
+                            color = "";
+                            break;
+                          case 2:
+                            color = "bg-green-200";
+                            break;
+                          case 3:
+                            color = "bg-green-400";
+                            break;
+                          case 4:
+                            color = "bg-green-600";
+                            break;
+
+                          default:
+                            break;
+                        }
+
+                        return (
+                          <td
+                            key={s}
+                            onClick={() => {
+                              console.log(s);
+                              setAddSurgery(s);
+                            }}
+                            className={`border border-gray-100 px-3 py-2 ${color} cursor-pointer`}
+                          >
+                            <p className="text-center text-xs text-gray-900">
+                              {text}
+                            </p>
+                          </td>
+                        );
+                      })}
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+      {addSurgery && (
+        <>
+          <AddSurgery
+            contactId={contactId}
+            surgery={addSurgery}
+            onClose={() => setAddSurgery(undefined)}
+            refetch={refetch}
+          />
+          <div className="fixed inset-0 z-40 bg-black bg-opacity-50"></div>
+        </>
+      )}
+    </>
+  );
+}
+
+function AddSurgery({
+  contactId,
+  onClose,
+  surgery,
+  refetch,
+}: {
+  contactId: string;
+  onClose: () => void;
+  surgery: Surgery;
+  refetch: () => void;
+}) {
+  const { data: products } = api.reference.findAll.useQuery({
+    fabricant: Fabricant.SWING,
+    surgery,
+  });
+
+  const setAvancementMutation =
+    api.chirurgien.setAvancementHistorique.useMutation({
+      onSuccess: () => {
+        refetch();
+        onClose();
+      },
+    });
+
+  const [produit, setProduit] = useState<string | undefined>(undefined);
+
+  const [avancement, setAvancement] = useState<number>(1);
+
+  const [produits, setProduits] = useState<Product[]>([]);
+
+  const handleAddProduit = () => {
+    if (!produit) {
+      return;
+    }
+
+    const product = products?.data?.find((p) => p.reference === produit);
+
+    if (!product) {
+      return;
+    }
+
+    setProduits((prev) => [...prev, product]);
+  };
+
+  const handleDeleteProduit = (id: string) => {
+    setProduits((prev) => prev.filter((p) => p.id !== id));
+  };
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    setAvancementMutation.mutate({
+      chirugienId: contactId,
+      surgery,
+      avancement,
+      products: produits.map((p) => p.id),
+    });
+  };
+
+  return (
+    <div
+      role="alert"
+      className="fixed inset-0 z-50 flex items-center justify-center"
+    >
+      <div className="rounded-xl border border-gray-100 bg-white p-8">
+        <div className="mb-4 flex items-start gap-4">
+          <div className="flex-1">
+            <strong className="block font-medium text-gray-900">
+              Editer l&apos;avancement {surgery}
+            </strong>
+          </div>
+
+          <button
+            className="text-gray-500 transition hover:text-gray-600"
+            onClick={() => onClose()}
+          >
+            <span className="sr-only">Dismiss popup</span>
+
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth="1.5"
+              stroke="currentColor"
+              className="h-6 w-6"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </button>
+        </div>
+        <form className="space-y-4" onSubmit={handleSubmit}>
+          <div>
+            <ButtonGroup
+              activeIndex={avancement}
+              buttons={[
+                {
+                  label: "N/A",
+                  onClick: () => {
+                    setAvancement(0);
+                  },
+                },
+                {
+                  label: "NCP",
+                  onClick: () => {
+                    setAvancement(1);
+                  },
+                },
+
+                {
+                  label: "Essai",
+                  onClick: () => {
+                    setAvancement(2);
+                  },
+                },
+                {
+                  label: "Validé",
+                  onClick: () => {
+                    setAvancement(3);
+                  },
+                },
+                {
+                  label: "Utilisé",
+                  onClick: () => {
+                    setAvancement(4);
+                  },
+                },
+              ]}
+              onActiveChange={() => {
+                /* do nothing */
+              }}
+            />
+          </div>
+          {avancement > 1 && (
+            <>
+              <div className="grid grid-cols-3 gap-4 sm:grid-cols-3">
+                <select
+                  name="product"
+                  id="product"
+                  value={produit}
+                  onChange={(e) => setProduit(e.target.value)}
+                  className="col-span-2 w-full rounded-lg border-gray-200 p-4 pe-12 text-sm shadow-sm"
+                >
+                  <option value="">Selectionner un produit</option>
+                  {products?.data?.map((product) => (
+                    <option key={product.id} value={product.reference}>
+                      {product.reference}
+                    </option>
+                  ))}
+                </select>
+
+                <button
+                  onClick={handleAddProduit}
+                  type="button"
+                  className="rounded-md border border-transparent bg-blue-600 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                >
+                  Ajouter
+                </button>
+              </div>
+
+              <div className="flow-root  rounded-lg border border-gray-100 shadow-sm">
+                <dl className="divide-y divide-gray-100 text-sm">
+                  {produits.map((p) => (
+                    <dd
+                      key={p.id}
+                      className="flex items-center justify-between px-2 py-4 even:bg-gray-50"
+                    >
+                      <span>{p.reference}</span>
+                      <button
+                        onClick={() => handleDeleteProduit(p.id)}
+                        type="button"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          strokeWidth="1.5"
+                          stroke="currentColor"
+                          className="h-6 w-6"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M6 18L18 6M6 6l12 12"
+                          />
+                        </svg>
+                      </button>
+                    </dd>
+                  ))}
+                </dl>
+              </div>
+            </>
+          )}
+
+          <div className="flex justify-end">
+            <button
+              type="submit"
               className="inline-flex items-center justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-gray-300"
             >
               Enregistrer
