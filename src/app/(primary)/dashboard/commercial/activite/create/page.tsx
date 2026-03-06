@@ -82,10 +82,10 @@ export default function CreateActivity() {
     });
 
   useEffect(() => {
-    if (chirurgiens?.length) {
+    if (chirurgiens?.total) {
       setForm((prevForm) => ({
         ...prevForm,
-        selectedChirurgienId: chirurgiens[0]?.id,
+        selectedChirurgienId: chirurgiens?.data[0]?.id,
       }));
     }
   }, [chirurgiens]);
@@ -102,7 +102,9 @@ export default function CreateActivity() {
   }, [form]);
 
   const selectedChir = useMemo(() => {
-    return chirurgiens?.find((chir) => chir.id === form.selectedChirurgienId);
+    return chirurgiens?.data.find(
+      (chir) => chir.id === form.selectedChirurgienId,
+    );
   }, [form.selectedChirurgienId, chirurgiens]);
 
   const { openPopup, setTitle, setMessage } = usePopup();
@@ -404,7 +406,7 @@ export default function CreateActivity() {
                           }}
                           className="mt-2 w-full rounded-lg border-gray-300 p-4 pe-12 text-sm text-gray-700 shadow-sm sm:text-sm"
                         >
-                          {chirurgiens?.map((chirurgien) => (
+                          {chirurgiens?.data.map((chirurgien) => (
                             <option key={chirurgien.id} value={chirurgien.id}>
                               {chirurgien.lastname} {chirurgien.firstname}
                             </option>

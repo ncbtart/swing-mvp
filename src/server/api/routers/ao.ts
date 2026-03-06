@@ -7,6 +7,8 @@ import {
   SourceAO,
   TypeMarche,
 } from "@prisma/client";
+import sendMail from "@/utils/mail";
+import { format } from "date-fns";
 
 export const aoRouter = createTRPCRouter({
   create: protectedProcedure
@@ -155,39 +157,52 @@ export const aoRouter = createTRPCRouter({
         throw new Error("Not authorized");
       }
 
-      if (!input.status) {
-        const old = await ctx.db.source.findFirst({
-          where: {
-            id: input.id,
-          },
-        });
+      const old = await ctx.db.source.findFirst({
+        where: {
+          id: input.id,
+        },
+      });
 
-        if (!old) {
-          throw new Error("AO not found");
-        }
-
-        const ao = await ctx.db.source.update({
-          where: {
-            id: input.id,
-          },
-          data: {
-            status: !old.status,
-          },
-        });
-
-        return ao;
-      } else {
-        const ao = await ctx.db.source.update({
-          where: {
-            id: input.id,
-          },
-          data: {
-            status: input.status,
-          },
-        });
-
-        return ao;
+      if (!old) {
+        throw new Error("AO not found");
       }
+
+      const ao = await ctx.db.source.update({
+        where: {
+          id: input.id,
+        },
+        data: {
+          status: input.status ?? !old.status,
+        },
+        include: {
+          etablissementAO: {
+            include: {
+              etablissement: true,
+            },
+          },
+        },
+      });
+
+      const mailTo = process.env.MAIL_ENVOIE;
+
+      if (!mailTo) {
+        throw new Error("Mail not found");
+      }
+
+      sendMail(
+        mailTo,
+        `Envoi AO`,
+        `Bonjour,\Veuillez trouver ci-joint L’AO du type ${ao.source}, ${ao.name} pour les établissements ${ao.etablissementAO
+          .map((e) => e.etablissement.name)
+          .join(
+            ", ",
+          )})}\nDate AO : du : ${format(ao.dateDebut, "dd/MM/yyyy")} au ${format(ao.dateFin, "dd/MM/yyyy")}`,
+        "",
+      ).catch((e) => {
+        console.error(e);
+      });
+
+      return ao;
     }),
 
   findAll: protectedProcedure

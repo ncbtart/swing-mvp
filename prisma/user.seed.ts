@@ -16,9 +16,10 @@ async function seedUsers(
   commercialRole: Role,
 ) {
   for (const commercial of Commerciaux) {
-    const { firstname, lastname, secteur } = commercial;
+    const { firstname, lastname, secteur, email } = commercial;
 
-    const email = `${firstname.toLowerCase()}.${lastname.toLowerCase()}@localhost`;
+    const newEmail =
+      email ?? `${firstname.toLowerCase()}.${lastname.toLowerCase()}@localhost`;
     const hashedPassword = await bcrypt.hash(`azertyuiop1234`, 10);
 
     const secteurs = await client.secteur.findMany({
@@ -32,7 +33,7 @@ async function seedUsers(
     const user = await client.user.create({
       data: {
         username: `${firstname.toLowerCase()[0]}.${lastname.toLowerCase()}`,
-        email,
+        email: newEmail,
         firstname,
         lastname: lastname.toUpperCase(),
         roleId: commercialRole.id,

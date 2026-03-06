@@ -39,9 +39,9 @@ async function main() {
   await seedUsers(prisma, admin, chef, commercial);
 
   await seedReferences(prisma);
-  const etablissement = await seedEtablissement(prisma);
+  const etablissementId = await seedEtablissement(prisma);
 
-  await seedChirurgien(prisma, etablissement.id);
+  await seedChirurgien(prisma, etablissementId);
 
   // add user to secteur
   const firstSecteur = secteurs[0];

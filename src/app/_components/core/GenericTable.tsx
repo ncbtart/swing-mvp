@@ -75,7 +75,6 @@ function GenericTable<T>({
     </div>
   );
 }
-
 export function GenericPaginator({
   total,
   take,
@@ -89,6 +88,9 @@ export function GenericPaginator({
 }): JSX.Element {
   const totalPages = Math.ceil(total / take);
   const currentPage = skip / take + 1;
+  const maxPagesToShow = 5; // Nombre maximum de pages à afficher autour de la page actuelle
+  const startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow / 2));
+  const endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
 
   const handlePrevPage = () => {
     if (currentPage > 1) onPageChange((currentPage - 2) * take);
@@ -104,59 +106,79 @@ export function GenericPaginator({
 
   return (
     <div className="rounded-b-lg border-t border-gray-200 px-4 py-2">
-      <ol className="flex justify-end gap-1 text-xs font-medium">
+      <ol className="flex items-center justify-end gap-1 text-xs font-medium">
+        <li>
+          <button
+            onClick={() => handlePageSelect(1)}
+            disabled={currentPage === 1}
+            className="min-w-[40px] rounded border bg-white px-2 py-1 text-gray-900 hover:bg-gray-100"
+          >
+            Première
+          </button>
+        </li>
         <li>
           <button
             onClick={handlePrevPage}
             disabled={currentPage <= 1}
-            className="inline-flex size-8 items-center justify-center rounded border border-gray-100 bg-white text-gray-900 rtl:rotate-180"
+            className="flex min-w-[40px] items-center justify-center rounded border bg-white px-2 py-1 text-gray-900 hover:bg-gray-100"
           >
-            <span className="sr-only">Prev Page</span>
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="h-3 w-3"
-              viewBox="0 0 20 20"
+              width="20"
+              height="20"
               fill="currentColor"
+              viewBox="0 0 20 20"
             >
               <path
                 fillRule="evenodd"
-                d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
+                d="M9.707 4.293a1 1 0 00-1.414 0l-5 5a1 1 0 000 1.414l5 5a1 1 0 001.414-1.414L6.414 10l3.293-3.293a1 1 0 000-1.414z"
                 clipRule="evenodd"
               />
             </svg>
           </button>
         </li>
 
-        {[...Array(totalPages).keys()].map((page) => (
-          <li key={page}>
+        {startPage > 1 && <li>...</li>}
+        {[...Array(endPage - startPage + 1).keys()].map((index) => (
+          <li key={startPage + index}>
             <button
-              onClick={() => handlePageSelect(page + 1)}
-              className={`block size-8 rounded border leading-8 ${currentPage === page + 1 ? "border-blue-600 bg-blue-600 text-white" : "border-gray-100 bg-white text-gray-900"}`}
+              onClick={() => handlePageSelect(startPage + index)}
+              className={`min-w-[40px] rounded border px-2 py-1 ${currentPage === startPage + index ? "bg-blue-600 text-white" : "bg-white text-gray-900 hover:bg-gray-100"}`}
             >
-              {page + 1}
+              {startPage + index}
             </button>
           </li>
         ))}
+        {endPage < totalPages && <li>...</li>}
 
         <li>
           <button
             onClick={handleNextPage}
             disabled={currentPage >= totalPages}
-            className="inline-flex size-8 items-center justify-center rounded border border-gray-100 bg-white text-gray-900 rtl:rotate-180"
+            className="flex min-w-[40px] items-center justify-center rounded border bg-white px-2 py-1 text-gray-900 hover:bg-gray-100"
           >
-            <span className="sr-only">Next Page</span>
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="h-3 w-3"
-              viewBox="0 0 20 20"
+              width="20"
+              height="20"
               fill="currentColor"
+              viewBox="0 0 20 20"
             >
               <path
                 fillRule="evenodd"
-                d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                d="M10.293 15.707a1 1 0 001.414 0l5-5a1 1 0 000-1.414l-5-5a1 1 0 00-1.414 1.414L13.586 10l-3.293 3.293a1 1 0 000 1.414z"
                 clipRule="evenodd"
               />
             </svg>
+          </button>
+        </li>
+        <li>
+          <button
+            onClick={() => handlePageSelect(totalPages)}
+            disabled={currentPage === totalPages}
+            className="min-w-[40px] rounded border bg-white px-2 py-1 text-gray-900 hover:bg-gray-100"
+          >
+            Dernière
           </button>
         </li>
       </ol>

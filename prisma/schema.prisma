@@ -159,6 +159,7 @@ model UsingSurgery {
 model Model {
     id                   String                 @id @default(cuid())
     name                 String                 @unique
+    picto                String?
     product              Product                @relation(fields: [productId], references: [id])
     productId            String
     ProductLot           ProductLot[]

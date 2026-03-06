@@ -71,7 +71,11 @@ export const chirurgienRouter = createTRPCRouter({
         where: whereClause,
       });
 
-      return chirurgiens;
+      const total = await ctx.db.chirurgien.count({
+        where: whereClause,
+      });
+
+      return { data: chirurgiens, total };
     }),
   findOne: protectedProcedure
     .input(
@@ -452,7 +456,6 @@ export const chirurgienRouter = createTRPCRouter({
           },
         });
       } else {
-        console.log("Update surgery");
 
         await ctx.db.avancement.update({
           where: {

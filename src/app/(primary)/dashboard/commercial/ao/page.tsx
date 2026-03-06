@@ -121,7 +121,7 @@ export default function AO() {
                         <td className="max-w-60 px-4 py-2 text-gray-700">
                           <Link
                             href={`/dashboard/etablissements/fiche/${etablissement.id}?o=2`}
-                            className="text-blue-600"
+                            className="text-blue-800"
                           >
                             {etablissement.name}
                           </Link>

@@ -17,6 +17,7 @@ async function seedReferences(client: PrismaClient) {
           models: {
             create: (reference.models ?? []).map((model) => ({
               name: model.name,
+              picto: model.name.replace(/ /g, ""),
             })),
           },
         },

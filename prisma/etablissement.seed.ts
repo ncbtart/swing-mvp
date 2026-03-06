@@ -1,91 +1,85 @@
-import { EtablissementType, type PrismaClient } from "@prisma/client";
+import { type EtablissementType, type PrismaClient } from "@prisma/client";
+
+import XLSX from "xlsx";
+
+type ExcelData = Record<string, string>;
+
+let etablissementId: string;
 
 async function seedEtablissement(client: PrismaClient) {
-  const dept1 = await client.departement.findFirst({
-    where: {
-      code: {
-        startsWith: "01",
-      },
-    },
-  });
+  const workbook = XLSX.readFile("assets/FICHIER_CLIENT.xlsx");
+  const sheetName = workbook.SheetNames[0]; // prend la première feuille
 
-  if (!dept1) {
-    throw new Error("Cannot find departement 01");
+  if (!sheetName) {
+    throw new Error("Cannot find sheet name");
   }
 
-  const etablissement = await client.etablissement.create({
-    data: {
-      status: true,
-      isClient: true,
-      type: EtablissementType.CLINIQUE,
-      departementId: dept1.id,
-      name: "CLINIQUE CONVERT",
-      adresse: "62 AVENUE JASSERON",
-      central: "RAMSAY GENERALE DE SANTE",
-      codePostal: "01000",
-      ville: "BOURG EN BRESSE",
-      telephone: "0826301234",
-    },
-  });
+  const sheet = workbook.Sheets[sheetName]!;
 
-  await client.etablissement.create({
-    data: {
-      status: true,
-      isClient: false,
-      type: EtablissementType.CLINIQUE,
-      departementId: dept1.id,
-      name: "CLINIQUE AMBULATOIRE CENDAMEG",
-      adresse: "180 ROUTE DU NANT",
-      codePostal: "01280",
-      ville: "PREVESSIN MOENS",
-      telephone: "0450401770",
-    },
-  });
+  const headers: string[] = XLSX.utils.sheet_to_json(sheet, {
+    header: 1,
+    range: "A2:Z2",
+  })[0] as string[];
 
-  await client.etablissement.create({
-    data: {
-      status: true,
-      isClient: true,
-      type: EtablissementType.CLINIQUE,
-      departementId: dept1.id,
-      name: "HOPITAL PRIVE D AMBERIEU SAS",
-      adresse: "EN PRAGNAT NORD",
-      codePostal: "01506",
-      ville: "AMBERIEU EN BUGEY CEDEX",
-      telephone: "0474389521",
-    },
-  });
+  const data: ExcelData[] = XLSX.utils
+    .sheet_to_json<ExcelData>(sheet, {
+      header: headers,
+      range: "A4:Z800", // Assure-toi d'ajuster le range selon le contenu et la taille de ton fichier
+      raw: true,
+    })
+    .map((row) => ({
+      ...row,
+      codePostal: row["Code Postal"]?.toString() ?? "", // Convertit explicitement en chaîne de caractères et utilise une chaîne vide comme valeur par défaut
+      telEtbs: row["Tél Etbs"]?.toString().replace(/\s+/g, "") ?? "", // Convertit explicitement en chaîne de caractères et utilise une chaîne vide comme valeur par défaut
+    }));
 
-  await client.etablissement.create({
-    data: {
-      status: true,
-      isClient: false,
-      type: EtablissementType.HOPITAL,
-      departementId: dept1.id,
-      name: "CENTRE HOSPITALIER DE BOURG EN BRESSE FLEYRIAT",
-      adresse: "900 ROUTE DE PARIS",
-      codePostal: "01012",
-      ville: "BOURG EN BRESSE",
-      telephone: "0474454647",
-    },
-  });
+  for (const row of data) {
+    try {
+      const departement = await client.departement.findFirst({
+        where: {
+          code: {
+            startsWith: (row.codePostal ?? "").toString().slice(0, 2),
+          },
+        },
+      });
 
-  await client.etablissement.create({
-    data: {
-      status: true,
-      isClient: true,
-      type: EtablissementType.HOPITAL,
-      departementId: dept1.id,
-      name: "CH DU HAUT BUGEY",
-      adresse: "1 ROUTE DE VEYZIAT",
-      central: "GROUPEMENT DE COMMANDES PHARMSERA",
-      codePostal: "01117",
-      ville: "OYONNAX",
-      telephone: "0474731001",
-    },
-  });
+      if (!departement) {
+        throw new Error(
+          `Impossible de trouver le département pour le code postal ${row.codePostal}`,
+        );
+      }
 
-  return etablissement;
+      await client.etablissement
+        .create({
+          data: {
+            status: row.Statut === "ACTIF",
+            isClient: row.Client === "OUI",
+            type: row.TYPE as EtablissementType,
+            departementId: departement.id,
+            name: row["RAISON SOCIALE"]!,
+            adresse: row["ADRESSE SITE"]!,
+            central: row.CENTRALE!,
+            codePostal: row.codePostal!,
+            ville: row.VILLE!,
+            telephone: row.telEtbs!,
+          },
+        })
+        .then((etablissement) => {
+          if (!etablissementId) {
+            etablissementId = etablissement.id;
+          }
+        });
+
+      console.log(`Etablissement ${row["RAISON SOCIALE"]} créé`);
+    } catch (e) {
+      console.error(
+        `Impossible de créer l'établissement ${row["RAISON SOCIALE"]}`,
+      );
+      console.error(e);
+    }
+  }
+
+  return etablissementId;
 }
 
 export default seedEtablissement;
