@@ -1,29 +1,75 @@
-# Create T3 App
+# Swing MVP
 
-This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3-app`.
+Application web interne (MVP) pour le suivi d'activites commerciales, etablissements, chirurgiens, appels d'offres et references produits.
 
-## What's next? How do I make an app with this?
+## Stack technique
 
-We try to keep this project as simple as possible, so you can start with just the scaffolding we set up for you, and add additional things later when they become necessary.
+- Next.js 14 + React 18 + TypeScript
+- tRPC (API serveur type-safe)
+- Prisma (ORM) + base SQL
+- NextAuth (authentification)
+- Tailwind CSS
 
-If you are not familiar with the different technologies used in this project, please refer to the respective docs. If you still are in the wind, please join our [Discord](https://t3.gg/discord) and ask for help.
+Note: ce projet utilise Prisma, pas Drizzle.
 
-- [Next.js](https://nextjs.org)
-- [NextAuth.js](https://next-auth.js.org)
-- [Prisma](https://prisma.io)
-- [Drizzle](https://orm.drizzle.team)
-- [Tailwind CSS](https://tailwindcss.com)
-- [tRPC](https://trpc.io)
+## Lancer le projet en local
 
-## Learn More
+### 1) Prerequis
 
-To learn more about the [T3 Stack](https://create.t3.gg/), take a look at the following resources:
+- Node.js 20+
+- Yarn 1.x
+- Base de donnees accessible via `DATABASE_URL`
 
-- [Documentation](https://create.t3.gg/)
-- [Learn the T3 Stack](https://create.t3.gg/en/faq#what-learning-resources-are-currently-available) — Check out these awesome tutorials
+### 2) Installation
 
-You can check out the [create-t3-app GitHub repository](https://github.com/t3-oss/create-t3-app) — your feedback and contributions are welcome!
+```bash
+yarn install
+```
 
-## How do I deploy this?
+### 3) Configuration
 
-Follow our deployment guides for [Vercel](https://create.t3.gg/en/deployment/vercel), [Netlify](https://create.t3.gg/en/deployment/netlify) and [Docker](https://create.t3.gg/en/deployment/docker) for more information.
+Copier `.env.example` vers un fichier `.env` et renseigner les variables necessaires.
+
+Variables importantes:
+- `DATABASE_URL`
+- `NEXTAUTH_SECRET`
+- `NEXTAUTH_URL`
+- `GOOGLE_CLIENT_ID`
+- `GOOGLE_CLIENT_SECRET`
+
+### 4) Base de donnees
+
+```bash
+yarn db:push
+yarn db:seed
+```
+
+### 5) Demarrage
+
+```bash
+yarn dev
+```
+
+## Scripts utiles
+
+- `yarn dev`: lance l'app en local
+- `yarn build`: build de production
+- `yarn start`: demarre le build
+- `yarn lint`: controle qualite ESLint
+- `yarn test:server`: tests serveur (unitaires/controllers)
+
+## Qualite / tests
+
+- Lint: `yarn lint`
+- Tests serveur: `yarn test:server`
+
+Les tests couvrent des utilitaires serveur, la validation de schema et des controllers tRPC (ex: `reference`, `role`).
+
+## Donnees sensibles
+
+- Le dossier `assets/` est ignore par Git.
+- Ne jamais versionner les fichiers `.env` ni des secrets locaux.
+
+## Statut
+
+Ce repository est un MVP en evolution, stabilise pour demo technique et revue recruteur.
