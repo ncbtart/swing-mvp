@@ -118,7 +118,6 @@ function CommercialVue() {
     setChangeActivity(undefined);
   };
 
-  console.log(activities);
 
   return (
     <div className="mx-auto flex min-h-screen max-w-screen-2xl flex-col px-4 pb-16">

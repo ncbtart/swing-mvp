@@ -261,14 +261,12 @@ export const PannierProvider: React.FC<PannierProviderProps> = ({
   const addProduitLot = (produit: ProduitLot) => {
     if (produit.produitId) {
       if (lot.produits.some((l) => l.produitId === produit.produitId)) {
-        console.log("lot already exists");
         return;
       }
     }
 
     if (produit.modeleId) {
       if (lot.produits.some((l) => l.modeleId === produit.modeleId)) {
-        console.log("lot already exists");
         return;
       }
     }

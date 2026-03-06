@@ -27,6 +27,7 @@ import type { Lot } from "@/app/_hooks/usePannierAo";
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { NumericFormat } from "react-number-format";
 
 export default function CreateAo() {
   const [step, setStep] = useState(0);
@@ -305,6 +306,9 @@ export function EtablissementStep({
             </div>
 
             <div>
+              <label className="block text-sm font-medium text-gray-900">
+                Num. Marché
+              </label>
               <input
                 type="text"
                 placeholder="Num. Marché"
@@ -316,6 +320,9 @@ export function EtablissementStep({
             </div>
 
             <div>
+              <label className="block text-sm font-medium text-gray-900">
+                Num. Consult.
+              </label>
               <input
                 type="text"
                 placeholder="Num. Consult."
@@ -328,12 +335,17 @@ export function EtablissementStep({
               />
             </div>
 
-            <textarea
-              placeholder="Objet"
-              className="col-span-2 mt-1.5 w-full rounded-lg border-gray-300 p-4 pe-12 text-sm text-gray-700 shadow-sm sm:text-sm"
-              value={form.objet}
-              onChange={(e) => setForm({ ...form, objet: e.target.value })}
-            />
+            <div className="col-span-2 mt-1.5 w-full">
+              <label className="block text-sm font-medium text-gray-900">
+                Objet
+              </label>
+              <textarea
+                placeholder="Objet"
+                className="mt-1.5 w-full rounded-lg border-gray-300 p-4 pe-12 text-sm text-gray-700 shadow-sm sm:text-sm"
+                value={form.objet}
+                onChange={(e) => setForm({ ...form, objet: e.target.value })}
+              />
+            </div>
 
             <div className="col-span-2 flow-root rounded-lg border border-gray-100 py-3 shadow-sm">
               <div className="mb-4 grid grid-flow-row grid-cols-2 gap-4 px-4 sm:grid-cols-6">
@@ -567,7 +579,6 @@ export function LotsStep({ setStep }: { setStep: (step: number) => void }) {
       createLot();
       setStep(2);
     } catch (e) {
-      console.log(e);
     }
   };
 
@@ -605,6 +616,23 @@ export function LotsStep({ setStep }: { setStep: (step: number) => void }) {
 
           <div>
             <label
+              htmlFor="numero"
+              className="block text-sm font-medium text-gray-900"
+            >
+              N° Lot
+            </label>
+            <input
+              type="text"
+              name="numero"
+              placeholder="N° Lot"
+              value={lot.numero}
+              onChange={(e) => setLot({ ...lot, numero: e.target.value })}
+              className="mt-1.5 w-full rounded-lg border-gray-300 p-4 pe-12 text-sm text-gray-700 shadow-sm sm:text-sm"
+            />
+          </div>
+
+          <div>
+            <label
               htmlFor="attribution"
               className="block text-sm font-medium text-gray-900"
             >
@@ -628,18 +656,15 @@ export function LotsStep({ setStep }: { setStep: (step: number) => void }) {
           </div>
 
           <div>
+            <label
+              htmlFor="name"
+              className="block text-sm font-medium text-gray-900"
+            >
+              Nom Lot
+            </label>
             <input
               type="text"
-              placeholder="N° Lot"
-              value={lot.numero}
-              onChange={(e) => setLot({ ...lot, numero: e.target.value })}
-              className="mt-1.5 w-full rounded-lg border-gray-300 p-4 pe-12 text-sm text-gray-700 shadow-sm sm:text-sm"
-            />
-          </div>
-
-          <div>
-            <input
-              type="text"
+              name="name"
               placeholder="Nom Lot"
               value={lot.name}
               onChange={(e) => setLot({ ...lot, name: e.target.value })}
@@ -714,17 +739,22 @@ export function LotsStep({ setStep }: { setStep: (step: number) => void }) {
                     <label htmlFor="prix" className="sr-only">
                       Prix
                     </label>
-                    <input
+                    <NumericFormat
                       id="prix"
-                      type="number"
-                      inputMode="numeric"
-                      placeholder="Prix"
-                      className="w-full rounded-lg border-gray-200 p-4 pe-12 text-sm shadow-sm"
                       value={prix}
-                      step="0.01" // Autorise l'entrée des centimes
-                      onChange={(e) => setPrix(Number(e.target.value))}
+                      onValueChange={(values) => {
+                        const { floatValue } = values;
+                        setPrix(floatValue ?? 0);
+                      }}
+                      thousandSeparator=" "
+                      decimalSeparator=","
+                      allowNegative={false}
+                      decimalScale={2}
+                      fixedDecimalScale={true}
+                      placeholder="Prix"
+                      className="w-full rounded-lg border-gray-200 p-4 pr-12 text-sm shadow-sm"
                     />
-                    <span className="pointer-events-none absolute inset-y-0 end-0 grid w-10 place-content-center text-gray-500">
+                    <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-4 text-gray-500">
                       €
                     </span>
                   </div>

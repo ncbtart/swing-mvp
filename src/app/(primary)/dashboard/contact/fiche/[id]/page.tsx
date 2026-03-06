@@ -21,7 +21,6 @@ import {
   type UsingSurgery,
   type EtablissementType,
 } from "@prisma/client";
-import { on } from "events";
 
 import Image from "next/image";
 import Link from "next/link";
@@ -123,7 +122,7 @@ export default function FicheEtablissement({
                           />
                           <TabButton
                             activeIndex={tabIndex}
-                            label="Historique"
+                            label="MaJ man. Tableau Avancement"
                             setTabIndex={setTabIndex}
                             tabIndex={2}
                           />
@@ -239,7 +238,7 @@ function ViewMode({
       <div className="mx-auto flow-root max-w-3xl pb-6">
         <dl className="-my-3 divide-y divide-gray-100 text-sm">
           <div className="grid grid-cols-1 gap-1 py-3 sm:grid-cols-3 sm:gap-4">
-            <dt className="font-medium text-gray-900">Civ.</dt>
+            <dt className="font-medium text-gray-900">Civilité</dt>
             <dd className="text-gray-700 sm:col-span-2">
               {CiviliteLabels[contact.civilite]}
             </dd>
@@ -689,7 +688,6 @@ function EditMode({
                       id="diffusion1"
                       checked={contactTemp.isDiffusion}
                       onChange={(e) => {
-                        console.log(e.target.checked);
                         setContactTemp((prev) => ({
                           ...prev,
                           isDiffusion: e.target.checked,
@@ -1132,7 +1130,6 @@ function NewRefForm({
                     onClick: () => setFabricantFilter(Fabricant.AUTRES),
                   },
                 ]}
-                onActiveChange={(val) => console.log(val)}
               />
             </div>
           </div>
@@ -1224,7 +1221,7 @@ export function Historique({ contactId }: { contactId: string }) {
               <table className="min-w-full divide-y-2 divide-gray-200 bg-white text-sm">
                 <thead className="text-left">
                   <tr>
-                    <th className="w-1/12 bg-gray-50 px-8 py-3">Spécialité</th>
+                    <th className="w-1/12 bg-gray-50 px-8 py-3">Spécialités</th>
                     {historique &&
                       SurgeriesByService[historique?.service].map((s) => {
                         return (
@@ -1258,7 +1255,6 @@ export function Historique({ contactId }: { contactId: string }) {
                             <td
                               key={s}
                               onClick={() => {
-                                console.log(s);
                                 setAddSurgery(s);
                               }}
                               className={`border border-gray-100 px-6 py-4 ${color} cursor-pointer`}
@@ -1296,7 +1292,6 @@ export function Historique({ contactId }: { contactId: string }) {
                           <td
                             key={s}
                             onClick={() => {
-                              console.log(s);
                               setAddSurgery(s);
                             }}
                             className={`border border-gray-100 px-3 py-2 ${color} cursor-pointer`}

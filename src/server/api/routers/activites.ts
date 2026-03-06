@@ -20,6 +20,14 @@ import {
   RendezVousTypeLabels,
   ServiceLabels,
 } from "@/utils/constantes";
+import sendMail from "@/utils/mail";
+import { format } from "date-fns";
+
+interface ErrorType {
+  code: number;
+  message: string;
+  status: string;
+}
 
 export const activitesRouter = createTRPCRouter({
   create: protectedProcedure
@@ -157,19 +165,19 @@ export const activitesRouter = createTRPCRouter({
       } else {
         switch (rdv.chirurgiens[0]?.chirurgien?.service) {
           case Service.CHIR_DIGESTIF:
-            colorId = "1";
+            colorId = "9";
             break;
           case Service.CHIR_GINECO:
-            colorId = "2";
+            colorId = "5";
             break;
           case Service.CHIR_UROLOGIE:
-            colorId = "3";
-            break;
-          case Service.PHARMACIE:
             colorId = "4";
             break;
+          case Service.PHARMACIE:
+            colorId = "3";
+            break;
           case Service.X_BLOC:
-            colorId = "5";
+            colorId = "8";
             break;
           default:
             colorId = "1";
@@ -190,18 +198,29 @@ export const activitesRouter = createTRPCRouter({
         colorId,
       };
 
-      const googleEvent = await createCalendarEvent(
-        authClient,
-        calendarId,
-        event,
-      );
+      try {
+        const googleEvent = await createCalendarEvent(
+          authClient,
+          calendarId,
+          event,
+        );
 
-      await ctx.db.rendezVous.update({
-        where: { id: rdv.id },
-        data: { googleEventId: googleEvent.id },
-      });
+        await ctx.db.rendezVous.update({
+          where: { id: rdv.id },
+          data: { googleEventId: googleEvent.id },
+        });
 
-      return { rdv, googleEvent };
+        return { rdv, googleEvent };
+      } catch (e) {
+        if ((e as ErrorType).code === 404) {
+          await ctx.db.user.update({
+            where: { id: user.id },
+            data: { googleCalendarId: null },
+          });
+
+          throw new Error("Google Calendar not found");
+        }
+      }
     }),
 
   updateDate: protectedProcedure
@@ -229,14 +248,53 @@ export const activitesRouter = createTRPCRouter({
           date: input.date,
           dateFin: input.dateFin,
         },
+        include: {
+          chirurgiens: {
+            include: {
+              chirurgien: {
+                include: {
+                  etablissement: true,
+                },
+              },
+            },
+          },
+        },
       });
 
       if (!rdv.googleEventId) {
         throw new Error("Google Calendar event ID not found");
       }
 
+      let colorId;
+
+      if (rdv.type === RendezVousType.ESSAI) {
+        colorId = "10";
+      } else {
+        switch (rdv.chirurgiens[0]?.chirurgien?.service) {
+          case Service.CHIR_DIGESTIF:
+            colorId = "9";
+            break;
+          case Service.CHIR_GINECO:
+            colorId = "5";
+            break;
+          case Service.CHIR_UROLOGIE:
+            colorId = "4";
+            break;
+          case Service.PHARMACIE:
+            colorId = "3";
+            break;
+          case Service.X_BLOC:
+            colorId = "8";
+            break;
+          default:
+            colorId = "1";
+            break;
+        }
+      }
+
       const authClient = await getAuthClient(ctx.session.user.accessToken!);
       const event = {
+        summary: `${rdv.chirurgiens[0]?.chirurgien?.etablissement?.name} - ${rdv.chirurgiens.map((c) => `${ServiceLabels[c.chirurgien.service]} ${CiviliteLabels[c.chirurgien.civilite]} ${c.chirurgien.firstname} ${c.chirurgien?.lastname}`).join(", ")} -  ${RendezVousTypeLabels[rdv.type]}`,
         start: {
           dateTime: input.date.toISOString(),
           timeZone: "Europe/Paris",
@@ -245,6 +303,7 @@ export const activitesRouter = createTRPCRouter({
           dateTime: input.dateFin.toISOString(),
           timeZone: "Europe/Paris",
         },
+        colorId: colorId,
       };
 
       try {
@@ -314,7 +373,6 @@ export const activitesRouter = createTRPCRouter({
             rdv.googleEventId,
           );
         } catch (e) {
-          console.log(e);
         }
       }
 
@@ -660,6 +718,11 @@ export const activitesRouter = createTRPCRouter({
         },
         include: {
           rendezVous: true,
+          chirurgien: {
+            include: {
+              etablissement: true,
+            },
+          },
         },
       });
 
@@ -674,7 +737,7 @@ export const activitesRouter = createTRPCRouter({
         throw new Error("Unauthorized");
       }
 
-      return await ctx.db.chirurgienRendezVous.update({
+      const confirmRDV = await ctx.db.chirurgienRendezVous.update({
         where: {
           id: input.id,
         },
@@ -701,5 +764,36 @@ export const activitesRouter = createTRPCRouter({
           },
         },
       });
+
+      if (rdv.rendezVous.type === RendezVousType.ESSAI) {
+        const user = await ctx.db.user.findUnique({
+          where: { id: ctx.session.user.id },
+        });
+
+        if (!user) {
+          throw new Error("User not found");
+        }
+
+        const mailTo = process.env.MAIL_ENVOIE;
+
+        if (!mailTo) {
+          throw new Error("Mail not found");
+        }
+
+        for (const model of input.modelEssai) {
+          if (model.filePath) {
+            await sendMail(
+              mailTo,
+              "Fiche essai",
+              `Bonjour,\nVeuillez trouver ci-joint la fiche d’essai du Dr. ${rdv.chirurgien.lastname} ${rdv.chirurgien.firstname}., ${rdv.chirurgien.etablissement.name} le ${format(new Date(), "dd/MM/yyyy")}.\nCordialement,\nSwing Technologies\n${user.firstname} ${user.lastname?.toUpperCase()}`,
+              "",
+              model.filePath,
+              `/uploads/${model.filePath}`,
+            ).catch(() => null);
+          }
+        }
+      }
+
+      return confirmRDV;
     }),
 });

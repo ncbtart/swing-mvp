@@ -39,14 +39,12 @@ export default function Etablissements() {
   const { data: etablissements, isPending } =
     api.etablissement.findAll.useQuery({
       skip,
-      take: 10,
+      take: 15,
       search: debouncedSearch,
       etablissementType,
     });
 
-  const handleActiveChange = (label: string) => {
-    console.log(label);
-  };
+  const handleActiveChange = (_label: string) => undefined;
 
   return (
     <div className="mx-auto flex min-h-screen max-w-screen-2xl flex-col px-4 pb-16">
@@ -150,7 +148,7 @@ export default function Etablissements() {
                       href={`/dashboard/etablissements/fiche/${etablissements?.data
                         .find((etablissement) => etablissement.name === name)
                         ?.id?.toString()}`}
-                      className="text-sm text-blue-600 hover:underline"
+                      className="text-sm text-blue-800 hover:underline"
                     >
                       <span>{name as string}</span>
                     </Link>

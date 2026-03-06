@@ -85,6 +85,7 @@ export default function FicheActivite({ params }: { params: { id: string } }) {
         id: string;
         name: string;
         productId: string;
+        picto: string | null;
       };
     } & {
       id: string;
@@ -105,6 +106,7 @@ export default function FicheActivite({ params }: { params: { id: string } }) {
     if (
       activite &&
       activite.rendezVous.ModelEssaiRendezVous &&
+      activite.rendezVous.type === RendezVousType.ESSAI &&
       !modelEssaiCr.length
     ) {
       setModelEssaiCr(
@@ -430,6 +432,15 @@ export default function FicheActivite({ params }: { params: { id: string } }) {
                                 {" "}
                                 {model.pose && PoseLabels[model.pose]}
                               </span>
+                              {model.model.picto && (
+                                <Image
+                                  src={`/picto/${model.model.picto}.png`}
+                                  alt="logo"
+                                  className="mt-4"
+                                  width={80}
+                                  height={80}
+                                />
+                              )}
                             </div>
 
                             <div className="col-span-2 grid grid-cols-2 gap-6">
@@ -837,7 +848,6 @@ export default function FicheActivite({ params }: { params: { id: string } }) {
                           setForm((prev) => ({ ...prev, state: newState }))
                         }
                         setRendezVous={(newRendezVous) => {
-                          console.log(newRendezVous);
                           setForm((prev) => ({
                             ...prev,
                             rendezVous: newRendezVous,
@@ -1037,7 +1047,7 @@ function RendezVousForm({
         {rendezVous.map((rdv, index) => (
           <div
             key={index}
-            className="grid border-collapse grid-cols-5 gap-1 border border-gray-100 py-3 shadow-sm even:bg-gray-50 sm:grid-cols-5 sm:gap-4"
+            className="grid border-collapse grid-cols-5 place-items-center gap-1 border border-gray-100 py-3 shadow-sm even:bg-gray-50 sm:grid-cols-5 sm:gap-4"
           >
             <dt className="px-1 text-center font-medium text-gray-900">
               {RendezVousTypeLabels[rdv.rdvType]}

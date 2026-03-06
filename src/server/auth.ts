@@ -51,15 +51,11 @@ declare module "next-auth/jwt" {
 export const authOptions: NextAuthOptions = {
   callbacks: {
     async jwt({ token, user, account, profile }) {
-      console.log("jwt callback - user:", user);
-      console.log("jwt callback - account:", account);
 
       if (account && account.provider === "google") {
         token.accessToken = account.access_token;
 
-        console.log("account", account);
 
-        console.log("profile", profile);
         // Vérifier si l'utilisateur existe dans la base de données
         const dbUser = await db.user.findUnique({
           where: {
@@ -70,7 +66,6 @@ export const authOptions: NextAuthOptions = {
           },
         });
 
-        console.log("dbUser", dbUser);
 
         if (!dbUser) {
           throw new Error("User not found");
@@ -89,8 +84,6 @@ export const authOptions: NextAuthOptions = {
       return token;
     },
     session({ session, token }) {
-      console.log("session callback - session:", session);
-      console.log("session callback - token:", token);
 
       session.user.role = token.role;
       session.user.id = token.id;

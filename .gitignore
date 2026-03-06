@@ -8,6 +8,8 @@
 # testing
 /coverage
 
+/assets
+
 # database
 /prisma/db.sqlite
 /prisma/db.sqlite-journal
@@ -16,6 +18,12 @@
 /.next/
 /out/
 next-env.d.ts
+
+/uploads
+/ca-certificates.crt
+/sasl_passwd
+/sasl_passwd.db
+.env-e
 
 # production
 /build

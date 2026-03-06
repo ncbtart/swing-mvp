@@ -107,9 +107,7 @@ export default function EditReference({ params }: { params: { id: string } }) {
     setModels((prev) => prev.filter((m) => m.name !== modelName));
   };
 
-  const handleActiveChange = (activeLabel: string) => {
-    console.log(`Bouton actif : ${activeLabel}`);
-  };
+  const handleActiveChange = (_activeLabel: string) => undefined;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

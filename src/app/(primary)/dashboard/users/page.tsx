@@ -70,9 +70,7 @@ export default function Utilisateurs() {
     },
   });
 
-  const handleActiveChange = (activeLabel: string) => {
-    console.log(`Bouton actif : ${activeLabel}`);
-  };
+  const handleActiveChange = (_activeLabel: string) => undefined;
 
   const handleDeleteUser = () => {
     if (!deleteUser) return;

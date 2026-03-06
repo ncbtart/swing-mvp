@@ -758,7 +758,7 @@ function Services({ etablissement }: { etablissement: Etablissement }) {
       return {};
     }
 
-    const chirByService = chirurgiens.reduce(
+    const chirByService = chirurgiens.data.reduce(
       (acc, chir) => {
         if (!acc[chir.service]) {
           acc[chir.service] = [];
@@ -768,7 +768,7 @@ function Services({ etablissement }: { etablissement: Etablissement }) {
 
         return acc;
       },
-      {} as Record<string, typeof chirurgiens>,
+      {} as Record<string, typeof chirurgiens.data>,
     );
 
     return chirByService;
@@ -807,7 +807,7 @@ function Services({ etablissement }: { etablissement: Etablissement }) {
           Ajouter un contact
         </div>
       </div>
-      {chirurgiens && chirurgiens.length > 0 ? (
+      {chirurgiens && chirurgiens.total > 0 ? (
         <div>
           {sortedKeys.map((service) => (
             <div key={service}>
@@ -904,9 +904,12 @@ function Services({ etablissement }: { etablissement: Etablissement }) {
                                 />
                               </svg>
 
-                              <p className="text-xs font-medium">
+                              <a
+                                href={`mailto:${chir.email}`}
+                                className="text-xs font-medium hover:underline"
+                              >
                                 {chir.email}
-                              </p>
+                              </a>
                             </>
                           )}
                         </div>
@@ -966,14 +969,18 @@ function Services({ etablissement }: { etablissement: Etablissement }) {
           ))}
         </div>
       ) : (
-        <div className="flex h-96 flex-col items-center justify-center">
-          <Image
-            src="/img/no_contact.svg"
-            alt="No data"
-            width={300}
-            height={300}
-          />
-        </div>
+        <>
+          {chirurgiens && chirurgiens.total === 0 && (
+            <div className="flex h-96 flex-col items-center justify-center">
+              <Image
+                src="/img/no_contact.svg"
+                alt="No data"
+                width={300}
+                height={300}
+              />
+            </div>
+          )}
+        </>
       )}
       {addChirMode && (
         <>
@@ -1574,13 +1581,13 @@ function Historique({ etablissement }: { etablissement: Etablissement }) {
         ) : (
           <>
             <div className="my-4 flex items-center justify-end space-x-4">
-              {chirurgiens && chirurgiens.length > 0 && (
+              {chirurgiens && chirurgiens.total > 0 && (
                 <select
                   className="w-48 rounded-md p-2 shadow-sm dark:border-gray-700"
                   onChange={(e) => setChirId(e.target.value)}
                 >
                   <option value="">Contact</option>
-                  {chirurgiens?.map((chirurgien) => (
+                  {chirurgiens?.data?.map((chirurgien) => (
                     <option key={chirurgien.id} value={chirurgien.id}>
                       {CiviliteLabels[chirurgien.civilite]}{" "}
                       {chirurgien.lastname} {chirurgien.firstname}
@@ -1591,116 +1598,231 @@ function Historique({ etablissement }: { etablissement: Etablissement }) {
             </div>
             {historiques && historiques?.total > 0 ? (
               <>
-                {historiques?.data.map((historique, index) => (
-                  <article
-                    key={`${historique.id}_${index}`}
-                    className="mb-6 rounded-xl bg-white p-4 ring ring-indigo-50 sm:p-6 lg:p-8"
-                  >
-                    <div className="flex items-start sm:gap-8">
-                      <div className="w-full ">
-                        <div className="flex flex-row space-x-4">
-                          <strong
-                            className="rounded border border-blue-500 bg-blue-500 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wide text-white
-"
-                          >
-                            {RendezVousTypeLabels[historique.rendezVous.type]}
-                          </strong>
-                          <div className="flex items-center gap-1 text-gray-500">
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              viewBox="0 0 24 24"
-                              fill="currentColor"
-                              className="size-6"
-                            >
-                              <path
-                                fillRule="evenodd"
-                                d="M6.75 2.25A.75.75 0 0 1 7.5 3v1.5h9V3A.75.75 0 0 1 18 3v1.5h.75a3 3 0 0 1 3 3v11.25a3 3 0 0 1-3 3H5.25a3 3 0 0 1-3-3V7.5a3 3 0 0 1 3-3H6V3a.75.75 0 0 1 .75-.75Zm13.5 9a1.5 1.5 0 0 0-1.5-1.5H5.25a1.5 1.5 0 0 0-1.5 1.5v7.5a1.5 1.5 0 0 0 1.5 1.5h13.5a1.5 1.5 0 0 0 1.5-1.5v-7.5Z"
-                                clipRule="evenodd"
-                              />
-                            </svg>
+                {historiques?.data.map((historique, index) => {
+                  let color = "border-blue-500 bg-blue-500";
 
-                            <p className="text-sm font-medium">
-                              {format(historique.rendezVous.date, "dd/MM/yyyy")}
-                            </p>
+                  if (historique.rendezVous.type === RendezVousType.ESSAI) {
+                    color === "border-green-500 bg-green-500";
+                  } else {
+                    switch (historique.chirurgien.service) {
+                      case Service.CHIR_DIGESTIF:
+                        color = "border-blue-500 bg-blue-500";
+                        break;
+                      case Service.CHIR_UROLOGIE:
+                        color = "border-red-400 bg-red-400";
+                        break;
+                      case Service.CHIR_GINECO:
+                        color = "border-amber-400 bg-amber-400";
+                        break;
+                      case Service.PHARMACIE:
+                        color = "border-purple-400 bg-purple-400";
+                        break;
+                      case Service.X_BLOC:
+                        color = "border-neutral-400 bg-neutral-400";
+                        break;
+                      default:
+                        break;
+                    }
+                  }
+
+                  return (
+                    <article
+                      key={`${historique.id}_${index}`}
+                      className="mb-6 rounded-xl bg-white p-4 ring ring-indigo-50 sm:p-6 lg:p-8"
+                    >
+                      <div className="flex items-start sm:gap-8">
+                        <div className="w-full ">
+                          <div className="flex flex-row space-x-4">
+                            <strong
+                              className={`rounded border ${color} px-3 py-1.5 text-[10px] font-bold uppercase tracking-wide text-white`}
+                            >
+                              {RendezVousTypeLabels[historique.rendezVous.type]}
+                            </strong>
+                            <div className="flex items-center gap-1 text-gray-500">
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 24 24"
+                                fill="currentColor"
+                                className="size-6"
+                              >
+                                <path
+                                  fillRule="evenodd"
+                                  d="M6.75 2.25A.75.75 0 0 1 7.5 3v1.5h9V3A.75.75 0 0 1 18 3v1.5h.75a3 3 0 0 1 3 3v11.25a3 3 0 0 1-3 3H5.25a3 3 0 0 1-3-3V7.5a3 3 0 0 1 3-3H6V3a.75.75 0 0 1 .75-.75Zm13.5 9a1.5 1.5 0 0 0-1.5-1.5H5.25a1.5 1.5 0 0 0-1.5 1.5v7.5a1.5 1.5 0 0 0 1.5 1.5h13.5a1.5 1.5 0 0 0 1.5-1.5v-7.5Z"
+                                  clipRule="evenodd"
+                                />
+                              </svg>
+
+                              <p className="text-sm font-medium">
+                                {format(
+                                  historique.rendezVous.date,
+                                  "dd/MM/yyyy",
+                                )}
+                              </p>
+                            </div>
                           </div>
-                        </div>
 
-                        <div className="mt-4 grid grid-cols-3 gap-28">
-                          <h3 className="font-bold">
-                            <Link
-                              href={`/dashboard/contact/fiche/${historique.chirurgien.id}`}
-                              className="hover:underline"
-                            >
-                              {CiviliteLabels[historique.chirurgien.civilite]}{" "}
-                              {historique.chirurgien.lastname}{" "}
-                              {historique.chirurgien.firstname}{" "}
-                            </Link>
-                            <p className="mt-1 text-xs text-gray-400">
-                              {historique.chirurgien.fonction} -{" "}
-                              {ServiceLabels[historique.chirurgien.service]}
-                            </p>
-                          </h3>
+                          <div className="mt-4 grid grid-cols-3 gap-28">
+                            <h3 className="font-bold">
+                              <Link
+                                href={`/dashboard/contact/fiche/${historique.chirurgien.id}`}
+                                className="hover:underline"
+                              >
+                                {CiviliteLabels[historique.chirurgien.civilite]}{" "}
+                                {historique.chirurgien.lastname}{" "}
+                                {historique.chirurgien.firstname}{" "}
+                              </Link>
+                              <p className="mt-1 text-xs text-gray-400">
+                                {historique.chirurgien.fonction} -{" "}
+                                {ServiceLabels[historique.chirurgien.service]}
+                              </p>
+                            </h3>
 
-                          <div className="col-span-2 mb-4">
-                            {historique.rendezVous.type ===
-                            RendezVousType.ESSAI ? (
-                              <>
-                                {historique.rendezVous.ModelEssaiRendezVous.map(
-                                  (model, index) => (
-                                    <div
-                                      key={`${model.id}_${index}`}
-                                      className={`flex flex-col rounded-lg border border-blue-200 p-4 text-sm ${index > 0 && "mt-2"}`}
-                                    >
-                                      <div className="mb-4 space-x-4">
-                                        <span className="whitespace-nowrap rounded-full bg-blue-100 px-2.5 py-0.5 text-sm text-blue-700">
-                                          {model.done ? "Posé" : "Non posé"}
-                                        </span>
-
-                                        {model.done && (
+                            <div className="col-span-2 mb-4">
+                              {historique.rendezVous.type ===
+                              RendezVousType.ESSAI ? (
+                                <>
+                                  {historique.rendezVous.ModelEssaiRendezVous.map(
+                                    (model, index) => (
+                                      <div
+                                        key={`${model.id}_${index}`}
+                                        className={`flex flex-col rounded-lg border border-blue-200 p-4 text-sm ${index > 0 && "mt-2"}`}
+                                      >
+                                        <div className="mb-4 space-x-4">
                                           <span className="whitespace-nowrap rounded-full bg-blue-100 px-2.5 py-0.5 text-sm text-blue-700">
-                                            {model.validation
-                                              ? "Validé"
-                                              : "Non validé"}
+                                            {model.done ? "Posé" : "Non posé"}
                                           </span>
+
+                                          {model.done && (
+                                            <span className="whitespace-nowrap rounded-full bg-blue-100 px-2.5 py-0.5 text-sm text-blue-700">
+                                              {model.validation
+                                                ? "Validé"
+                                                : "Non validé"}
+                                            </span>
+                                          )}
+                                        </div>
+                                        <p>
+                                          <span className="font-bold">
+                                            {model.model.name}
+                                            {!!model.pose && (
+                                              <span className="ml-2 text-xs uppercase text-gray-400">
+                                                {PoseLabels[model.pose]}
+                                              </span>
+                                            )}{" "}
+                                            :{" "}
+                                          </span>
+
+                                          <span className="ml-2">
+                                            {model.observation ??
+                                              "Aucune observation"}
+                                          </span>
+                                        </p>
+
+                                        {model.schedule && (
+                                          <p className="mt-2 text-sm font-medium text-red-600">
+                                            Date à programmer !
+                                          </p>
                                         )}
                                       </div>
-                                      <p>
-                                        <span className="font-bold">
-                                          {model.model.name}
-                                          {!!model.pose && (
-                                            <span className="ml-2 text-xs uppercase text-gray-400">
-                                              {PoseLabels[model.pose]}
-                                            </span>
-                                          )}{" "}
-                                          :{" "}
-                                        </span>
+                                    ),
+                                  )}
+                                </>
+                              ) : (
+                                <p className="rounded-lg border border-blue-200 p-4 text-sm">
+                                  {historique.observation}
+                                </p>
+                              )}
+                            </div>
+                          </div>
 
-                                        <span className="ml-2">
-                                          {model.observation ??
-                                            "Aucune observation"}
-                                        </span>
+                          <div className="mt-4 sm:flex sm:items-center sm:gap-2">
+                            <span className="text-sm">
+                              Prochain rendez-vous :
+                            </span>
+                            {historique.rendezVous.nextRendezVous.length > 0 ? (
+                              <>
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  strokeWidth={1.5}
+                                  stroke="currentColor"
+                                  className="size-6"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+                                  />
+                                </svg>
+
+                                {historique.rendezVous.nextRendezVous.map(
+                                  (rdv, index) => (
+                                    <Fragment key={rdv.id}>
+                                      <span className="whitespace-nowrap rounded-full bg-green-100 px-2.5 py-0.5 text-sm text-green-700">
+                                        {RendezVousTypeLabels[rdv.type]}
+                                      </span>
+
+                                      <p className="text-xs font-medium">
+                                        {format(rdv.date, "dd/MM/yyyy")}
                                       </p>
 
-                                      {model.schedule && (
-                                        <p className="mt-2 text-sm font-medium text-red-600">
-                                          Date à programmer !
+                                      {rdv.type === RendezVousType.ESSAI && (
+                                        <p className="text-sm font-bold">
+                                          {rdv?.ModelEssaiRendezVous?.map(
+                                            (model, index) => (
+                                              <span
+                                                key={index}
+                                                className={`text-sm font-medium ${index === 0 && "ml-2"}`}
+                                              >
+                                                {model.model.name}
+                                                {!!model.pose && (
+                                                  <span className="ml-2 text-xs text-gray-400">
+                                                    {model.pose}
+                                                  </span>
+                                                )}{" "}
+                                                {index <
+                                                  (rdv?.ModelEssaiRendezVous
+                                                    ?.length ?? 0) -
+                                                    1 && (
+                                                  <span className="text-sm font-medium">
+                                                    ,{" "}
+                                                  </span>
+                                                )}
+                                              </span>
+                                            ),
+                                          )}
                                         </p>
                                       )}
-                                    </div>
+
+                                      {index <
+                                        historique.rendezVous.nextRendezVous
+                                          .length -
+                                          1 && (
+                                        <span
+                                          className="hidden sm:block"
+                                          aria-hidden="true"
+                                        >
+                                          <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                            strokeWidth={1.5}
+                                            stroke="currentColor"
+                                            className="size-2"
+                                          >
+                                            <path
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                              d="m8.25 4.5 7.5 7.5-7.5 7.5"
+                                            />
+                                          </svg>
+                                        </span>
+                                      )}
+                                    </Fragment>
                                   ),
                                 )}
                               </>
                             ) : (
-                              <p className="rounded-lg border border-blue-200 p-4 text-sm">
-                                {historique.observation}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-
-                        <div className="mt-4 sm:flex sm:items-center sm:gap-2">
-                          {historique.rendezVous.nextRendezVous.length > 0 ? (
-                            <>
                               <svg
                                 xmlns="http://www.w3.org/2000/svg"
                                 fill="none"
@@ -1712,111 +1834,29 @@ function Historique({ etablissement }: { etablissement: Etablissement }) {
                                 <path
                                   strokeLinecap="round"
                                   strokeLinejoin="round"
-                                  d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+                                  d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
                                 />
                               </svg>
-
-                              {historique.rendezVous.nextRendezVous.map(
-                                (rdv, index) => (
-                                  <Fragment key={rdv.id}>
-                                    <span className="whitespace-nowrap rounded-full bg-green-100 px-2.5 py-0.5 text-sm text-green-700">
-                                      {RendezVousTypeLabels[rdv.type]}
-                                    </span>
-
-                                    <p className="text-xs font-medium">
-                                      {format(rdv.date, "dd/MM/yyyy")}
-                                    </p>
-
-                                    {rdv.type === RendezVousType.ESSAI && (
-                                      <p className="text-sm font-bold">
-                                        {rdv?.ModelEssaiRendezVous?.map(
-                                          (model, index) => (
-                                            <span
-                                              key={index}
-                                              className={`text-sm font-medium ${index === 0 && "ml-2"}`}
-                                            >
-                                              {model.model.name}
-                                              {!!model.pose && (
-                                                <span className="ml-2 text-xs text-gray-400">
-                                                  {model.pose}
-                                                </span>
-                                              )}{" "}
-                                              {index <
-                                                (rdv?.ModelEssaiRendezVous
-                                                  ?.length ?? 0) -
-                                                  1 && (
-                                                <span className="text-sm font-medium">
-                                                  ,{" "}
-                                                </span>
-                                              )}
-                                            </span>
-                                          ),
-                                        )}
-                                      </p>
-                                    )}
-
-                                    {index <
-                                      historique.rendezVous.nextRendezVous
-                                        .length -
-                                        1 && (
-                                      <span
-                                        className="hidden sm:block"
-                                        aria-hidden="true"
-                                      >
-                                        <svg
-                                          xmlns="http://www.w3.org/2000/svg"
-                                          fill="none"
-                                          viewBox="0 0 24 24"
-                                          strokeWidth={1.5}
-                                          stroke="currentColor"
-                                          className="size-2"
-                                        >
-                                          <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            d="m8.25 4.5 7.5 7.5-7.5 7.5"
-                                          />
-                                        </svg>
-                                      </span>
-                                    )}
-                                  </Fragment>
-                                ),
-                              )}
-                            </>
-                          ) : (
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              strokeWidth={1.5}
-                              stroke="currentColor"
-                              className="size-6"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
-                              />
-                            </svg>
-                          )}
+                            )}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </article>
-                ))}
+                    </article>
+                  );
+                })}
               </>
             ) : (
               <>
                 <div className="flex h-96 flex-col items-center justify-center">
-                  <p className="mb-12 text-sm text-gray-500 ">
-                    Aucun historique pour le moment
-                  </p>
                   <Image
                     src="/img/to_do.svg"
                     alt="No data"
                     width={450}
                     height={450}
                   />
+                  <p className="mt-12 text-sm text-gray-500 ">
+                    Aucun historique pour le moment
+                  </p>
                 </div>
               </>
             )}
@@ -1842,7 +1882,6 @@ function TabAvancement({ etablissement }: { etablissement: Etablissement }) {
     });
   }, [avancements]);
 
-  console.log(sortedChir);
 
   function getColourAvancement(avancementChir: number) {
     switch (avancementChir) {

@@ -46,7 +46,7 @@ export default function Etablissements() {
     refetch,
   } = api.etablissement.findAll.useQuery({
     skip,
-    take: 10,
+    take: 15,
     search: debouncedSearch,
     etablissementType,
   });
@@ -68,9 +68,7 @@ export default function Etablissements() {
     },
   });
 
-  const handleActiveChange = (label: string) => {
-    console.log(label);
-  };
+  const handleActiveChange = (_label: string) => undefined;
 
   const handleDeleteEtablissement = () => {
     if (!deleteEtablissement) return;
